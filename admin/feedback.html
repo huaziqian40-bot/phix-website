@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>反馈收件箱 · PHIX 维修社 · 上海民办平和学校</title>
+<link rel="stylesheet" href="/static/site.css">
+<meta name="mobile-css" content="/static/mobile-products.css">
+<script src="/static/ua-switch.js"></script>
+<style>
+.admin-layout{max-width:960px;margin:0 auto;padding:32px 24px}
+.admin-header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.admin-header h1{margin:0;font-size:1.5rem;font-weight:800;color:var(--ink)}
+.admin-header .user-badge{font-size:.875rem;color:var(--ink-2);background:var(--phix-mist);padding:4px 12px;border-radius:999px;border:1px solid var(--phix-lilac)}
+.admin-nav{display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap}
+.admin-nav a{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--radius-btn);border:1px solid var(--phix-lilac);color:var(--ink);text-decoration:none;font-weight:600;font-size:.9375rem;transition:all .18s ease}
+.admin-nav a:hover,.admin-nav a.active{background:var(--phix-violet);color:#fff;border-color:var(--phix-violet)}
+.admin-card{background:var(--paper);border:1px solid var(--phix-lilac);border-radius:var(--radius-card);padding:28px;box-shadow:var(--shadow-card)}
+.fb-item{padding:16px 0;border-bottom:1px solid var(--phix-lilac)}
+.fb-item:last-child{border-bottom:none}
+.fb-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.fb-type{font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--phix-mist);color:var(--phix-violet-2);border:1px solid var(--phix-lilac)}
+.fb-time{font-size:.75rem;color:var(--ink-2)}
+.fb-name{font-size:.8125rem;color:var(--ink-2)}
+.fb-desc{font-size:.875rem;color:var(--ink);line-height:1.6;margin:0 0 8px;white-space:pre-wrap}
+.fb-actions{display:flex;gap:8px;align-items:center}
+.badge-handled{font-size:.75rem;padding:2px 8px;border-radius:999px;background:#d1fae5;color:#065f46;font-weight:600}
+.badge-pending{font-size:.75rem;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-weight:600}
+.btn-xs{height:28px;padding:0 10px;font-size:.75rem;border-radius:6px;border:1px solid var(--phix-lilac);background:var(--paper);color:var(--ink);cursor:pointer;font-weight:600;transition:all .15s}
+.btn-xs:hover{background:var(--phix-mist);border-color:var(--phix-violet)}
+.msg-bar{margin-top:16px;padding:10px 14px;border-radius:var(--radius-btn);font-size:.875rem;display:none}
+.msg-ok{background:#d1fae5;color:#065f46;display:block}
+.msg-err{background:#fee2e2;color:#991b1b;display:block}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="/" aria-label="phix 首页"><img src="/assets/logo-transparent.png" alt="phix"></a>
+    <nav class="nav" aria-label="主导航"><ul class="nav__list">
+      <li><a class="nav__link" href="/about/">关于我们</a></li>
+      <li><a class="nav__link" href="/docs/">文档</a></li>
+      <li><a class="nav__link" href="/log/">PHIX 日志</a></li>
+    </ul></nav>
+    <div class="site-header__actions">
+      <a class="btn btn--sm btn--primary" href="/account/">个人中心</a>
+    </div>
+  </div>
+</header>
+
+<div class="admin-layout">
+  <div class="admin-header">
+    <h1>📬 反馈收件箱</h1>
+    <span class="user-badge">{{admin_username}}</span>
+  </div>
+  <div class="admin-nav">
+    <a href="/admin/">概览</a>
+    <a href="/admin/users/">用户管理</a>
+    <a href="/admin/content/">页面文字</a>
+    <a href="/admin/feedback/" class="active">反馈收件箱</a>
+  </div>
+  <div class="admin-card" id="fb-list">
+    <p style="color:var(--ink-2)">加载中…</p>
+  </div>
+  <div id="msg" class="msg-bar"></div>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__col">
+      <img class="site-footer__logo" src="/assets/logo-transparent.png" alt="phix">
+      <p class="site-footer__blurb">{{cms:footer.blurb|上海民办平和学校 · 维修社 · 用代码装点校园生活}}</p>
+    </div>
+    <nav class="site-footer__links"><a href="/about/">关于我们</a><a href="/products/xinlv/">产品</a><a href="/download/">下载</a><a href="/log/">PHIX 日志</a></nav>
+  </div>
+  <div class="site-footer__copy">{{cms:footer.copyright|© 2026 phix}}</div>
+</footer>
+<script src="/static/site.js"></script>
+<script>
+async function loadFeedback(){
+  try{
+    const r=await fetch('/admin/api/feedback');
+    const d=await r.json();
+    if(!d.ok){document.getElementById('fb-list').innerHTML='<p>加载失败</p>';return;}
+    const container=document.getElementById('fb-list');
+    if(!d.items.length){container.innerHTML='<p style="color:var(--ink-2)">暂无反馈</p>';return;}
+    let html=`<p style="margin:0 0 16px;font-size:.875rem;color:var(--ink-2)">共 ${d.total} 条，未处理 <strong>${d.unhandled}</strong> 条</p>`;
+    for(const fb of d.items){
+      const dt=(fb.submitted_at||'').replace('T',' ').slice(0,19);
+      const statusBadge=fb.handled
+        ?`<span class="badge-handled">已处理</span>`
+        :`<span class="badge-pending">未处理</span>`;
+      const handleBtn=fb.handled?'':`<button class="btn-xs" onclick="handleFb('${fb.id}')">标记已处理</button>`;
+      const namePart=fb.name?`<span class="fb-name">👤 ${fb.name}</span>`:'';
+      html+=`<div class="fb-item">
+        <div class="fb-meta">
+          <span class="fb-type">${fb.type||'其他'}</span>
+          ${statusBadge}
+          <span class="fb-time">${dt}</span>
+          ${namePart}
+        </div>
+        <p class="fb-desc">${(fb.desc||'').replace(/</g,'&lt;').slice(0,500)}</p>
+        <div class="fb-actions">${handleBtn}</div>
+      </div>`;
+    }
+    container.innerHTML=html;
+  }catch(e){document.getElementById('fb-list').innerHTML='<p>网络错误</p>';}
+}
+function showMsg(text,ok){
+  const el=document.getElementById('msg');
+  el.textContent=text;el.className='msg-bar '+(ok?'msg-ok':'msg-err');
+  setTimeout(()=>{el.className='msg-bar';},3000);
+}
+async function handleFb(id){
+  try{
+    const r=await fetch('/admin/api/feedback/handle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+    const d=await r.json();
+    if(d.ok){showMsg('已标记为已处理',true);loadFeedback();}
+    else{showMsg(d.error?.message||'操作失败',false);}
+  }catch(e){showMsg('网络错误',false);}
+}
+loadFeedback();
+</script>
+</body>
+</html>

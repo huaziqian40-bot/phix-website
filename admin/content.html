@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>页面文字编辑 · PHIX 维修社 · 上海民办平和学校</title>
+<link rel="stylesheet" href="/static/site.css">
+<meta name="mobile-css" content="/static/mobile-products.css">
+<script src="/static/ua-switch.js"></script>
+<style>
+.admin-layout{max-width:960px;margin:0 auto;padding:32px 24px}
+.admin-header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.admin-header h1{margin:0;font-size:1.5rem;font-weight:800;color:var(--ink)}
+.admin-header .user-badge{font-size:.875rem;color:var(--ink-2);background:var(--phix-mist);padding:4px 12px;border-radius:999px;border:1px solid var(--phix-lilac)}
+.admin-nav{display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap}
+.admin-nav a{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--radius-btn);border:1px solid var(--phix-lilac);color:var(--ink);text-decoration:none;font-weight:600;font-size:.9375rem;transition:all .18s ease}
+.admin-nav a:hover,.admin-nav a.active{background:var(--phix-violet);color:#fff;border-color:var(--phix-violet)}
+.admin-card{background:var(--paper);border:1px solid var(--phix-lilac);border-radius:var(--radius-card);padding:28px;box-shadow:var(--shadow-card)}
+.cms-row{display:grid;grid-template-columns:200px 1fr auto;gap:12px;align-items:start;padding:12px 0;border-bottom:1px solid var(--phix-lilac)}
+.cms-row:last-child{border-bottom:none}
+.cms-key{font-family:monospace;font-size:.8125rem;color:var(--phix-violet-2);word-break:break-all;padding-top:8px}
+.cms-field textarea{width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--phix-lilac);border-radius:var(--radius-input);font:inherit;font-size:.875rem;resize:vertical;transition:border-color .18s}
+.cms-field textarea:focus{outline:none;border-color:var(--phix-violet);box-shadow:0 0 0 3px rgba(154,43,226,.16)}
+.cms-field .default-hint{font-size:.75rem;color:var(--ink-2);margin-top:4px}
+.cms-actions{display:flex;gap:6px;padding-top:6px}
+.btn-xs{height:28px;padding:0 10px;font-size:.75rem;border-radius:6px;border:1px solid var(--phix-lilac);background:var(--paper);color:var(--ink);cursor:pointer;font-weight:600;transition:all .15s}
+.btn-xs:hover{background:var(--phix-mist);border-color:var(--phix-violet)}
+.btn-xs.primary{background:var(--phix-violet);color:#fff;border-color:var(--phix-violet)}
+.btn-xs.primary:hover{background:var(--phix-violet-2)}
+.msg-bar{margin-top:16px;padding:10px 14px;border-radius:var(--radius-btn);font-size:.875rem;display:none}
+.msg-ok{background:#d1fae5;color:#065f46;display:block}
+.msg-err{background:#fee2e2;color:#991b1b;display:block}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="/" aria-label="phix 首页"><img src="/assets/logo-transparent.png" alt="phix"></a>
+    <nav class="nav" aria-label="主导航"><ul class="nav__list">
+      <li><a class="nav__link" href="/about/">关于我们</a></li>
+      <li><a class="nav__link" href="/docs/">文档</a></li>
+      <li><a class="nav__link" href="/log/">PHIX 日志</a></li>
+    </ul></nav>
+    <div class="site-header__actions">
+      <a class="btn btn--sm btn--primary" href="/account/">个人中心</a>
+    </div>
+  </div>
+</header>
+
+<div class="admin-layout">
+  <div class="admin-header">
+    <h1>✏️ 页面文字编辑</h1>
+    <span class="user-badge">{{admin_username}}</span>
+  </div>
+  <div class="admin-nav">
+    <a href="/admin/">概览</a>
+    <a href="/admin/users/">用户管理</a>
+    <a href="/admin/content/" class="active">页面文字</a>
+    <a href="/admin/feedback/">反馈收件箱</a>
+  </div>
+  <div class="admin-card" id="cms-list">
+    <p style="color:var(--ink-2)">加载中…</p>
+  </div>
+  <div id="msg" class="msg-bar"></div>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__col">
+      <img class="site-footer__logo" src="/assets/logo-transparent.png" alt="phix">
+      <p class="site-footer__blurb">{{cms:footer.blurb|上海民办平和学校 · 维修社 · 用代码装点校园生活}}</p>
+    </div>
+    <nav class="site-footer__links"><a href="/about/">关于我们</a><a href="/products/xinlv/">产品</a><a href="/download/">下载</a><a href="/log/">PHIX 日志</a></nav>
+  </div>
+  <div class="site-footer__copy">{{cms:footer.copyright|© 2026 phix}}</div>
+</footer>
+<script src="/static/site.js"></script>
+<script>
+async function loadContent(){
+  try{
+    const r=await fetch('/admin/api/content');
+    const d=await r.json();
+    if(!d.ok){document.getElementById('cms-list').innerHTML='<p>加载失败</p>';return;}
+    const container=document.getElementById('cms-list');
+    container.innerHTML='';
+    for(const item of d.items){
+      const hasOverride=item.override!==null&&item.override!==undefined;
+      const val=hasOverride?item.override:'';
+      const placeholder=item.default||'';
+      const row=document.createElement('div');
+      row.className='cms-row';
+      row.innerHTML=`
+        <div class="cms-key">${item.key}</div>
+        <div class="cms-field">
+          <textarea data-key="${item.key}" placeholder="${placeholder.replace(/"/g,'&quot;')}">${val}</textarea>
+          ${!hasOverride?'<div class="default-hint">当前使用默认值</div>':''}
+        </div>
+        <div class="cms-actions">
+          <button class="btn-xs primary" onclick="saveKey('${item.key}',this)">保存</button>
+          ${hasOverride?`<button class="btn-xs" onclick="resetKey('${item.key}')">恢复默认</button>`:''}
+        </div>`;
+      container.appendChild(row);
+    }
+  }catch(e){document.getElementById('cms-list').innerHTML='<p>网络错误</p>';}
+}
+function showMsg(text,ok){
+  const el=document.getElementById('msg');
+  el.textContent=text;el.className='msg-bar '+(ok?'msg-ok':'msg-err');
+  setTimeout(()=>{el.className='msg-bar';},3000);
+}
+async function saveKey(key,btn){
+  const ta=document.querySelector(`textarea[data-key="${key}"]`);
+  if(!ta)return;
+  const value=ta.value;
+  try{
+    const r=await fetch('/admin/api/content/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,value})});
+    const d=await r.json();
+    if(d.ok){showMsg(`已保存 ${key}`,true);loadContent();}
+    else{showMsg(d.error?.message||'保存失败',false);}
+  }catch(e){showMsg('网络错误',false);}
+}
+async function resetKey(key){
+  if(!confirm(`确定恢复 ${key} 为默认值？`))return;
+  try{
+    const r=await fetch('/admin/api/content/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key})});
+    const d=await r.json();
+    if(d.ok){showMsg(`已恢复 ${key}`,true);loadContent();}
+    else{showMsg(d.error?.message||'恢复失败',false);}
+  }catch(e){showMsg('网络错误',false);}
+}
+loadContent();
+</script>
+</body>
+</html>

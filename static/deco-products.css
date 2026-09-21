@@ -1,0 +1,631 @@
+/* ==========================================================================
+   phix 产品页装饰样式（deco-products.css）
+   只服务于 /products/xinlv/、/products/phl/、/products/hardware/ 三个页面。
+   在 site.css 之后加载，复用 :root 色板变量；不覆盖任何 .site-header / .site-footer 规则。
+   色罩（紫色渐变）一律叠在 CSS 里，不烧进图片。
+   ========================================================================== */
+
+/* ---- 页面主容器：去掉 .page-content 的 800px 窄栏，改全宽排版 ---- */
+.page-product {
+  max-width: none;
+  padding: 0;
+  background: var(--paper);
+}
+
+/* ---- 长页面的渐显问题（2026-09-13）-------------------------------------------
+   原先产品页正文（<main class="page-product reveal">，5000–9000px 高）在
+   IntersectionObserver(threshold:0.15) 下永远等不到触发，`.reveal{opacity:0}`
+   不会被移除 → 整页除顶栏/页脚外全白。这里曾用 `.page-product.reveal{opacity:1}`
+   兜底；**主代理已在 site.js 根治**（高个子元素改用 threshold:0.01 + 加载后兜底），
+   故撤掉兜底，让产品页恢复与其他页面一致的渐显动画。 */
+
+/* ==========================================================================
+   1. hero 色带（每页顶部）
+   ========================================================================== */
+.deco-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: clamp(240px, 34vh, 420px);
+  background-size: cover;
+  background-position: center;
+  background-image:
+    linear-gradient(115deg,
+      rgba(76, 29, 149, .86) 0%,
+      rgba(109, 40, 217, .66) 45%,
+      rgba(226, 147, 214, .45) 100%),
+    var(--deco-img);
+}
+.deco-hero--xinlv    { --deco-img: url('/assets/decor-xinlv.jpg'); }
+.deco-hero--phl      { --deco-img: url('/assets/decor-phl.jpg'); }
+.deco-hero--hardware { --deco-img: url('/assets/decor-hardware.jpg'); }
+
+.deco-hero__inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+.deco-hero__kicker {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  color: rgba(255, 255, 255, .8);
+  text-shadow: 0 1px 3px rgba(30, 27, 46, .35);
+}
+.deco-hero__title {
+  margin: 0;
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(30, 27, 46, .45);
+  text-wrap: balance;
+}
+.deco-hero__subtitle {
+  margin: 16px 0 0;
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, .92);
+  max-width: 38em;
+  text-shadow: 0 1px 4px rgba(30, 27, 46, .4);
+}
+/* 2026-09-13：hero 里的两个入口按钮（打开网页端 / 下载客户端） */
+.deco-hero__actions {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.deco-hero__tags {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.deco-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .6);
+  background: rgba(30, 27, 46, .28);
+  color: #fff;
+  font-size: .875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(30, 27, 46, .4);
+  backdrop-filter: blur(4px);
+}
+
+/* ==========================================================================
+   2. 内容分区（正文通用容器）
+   ========================================================================== */
+.deco-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 24px;
+}
+.deco-section--tight { padding-top: 48px; padding-bottom: 48px; }
+
+.deco-h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.deco-lead {
+  margin: 0 0 32px;
+  max-width: 52em;
+  color: var(--ink-2);
+  line-height: 1.8;
+  font-size: 1.0625rem;
+}
+
+/* ---- 功能卡片网格 ---- */
+.deco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 22px;
+}
+.deco-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 26px 24px;
+  background: var(--paper);
+  border: 1px solid var(--phix-lilac);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.deco-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+}
+.deco-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--phix-mist);
+  border: 1px solid var(--phix-lilac);
+  color: var(--phix-violet);
+}
+.deco-card__icon svg { width: 22px; height: 22px; }
+.deco-card__title {
+  margin: 2px 0 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.deco-card__desc {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: .9375rem;
+  line-height: 1.75;
+}
+
+/* ==========================================================================
+   3. 宽幅色带分隔段（每页各用专属照片 band-*.jpg，紫色色罩叠在 CSS）
+   ========================================================================== */
+.deco-band {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: clamp(180px, 26vh, 300px);
+  background-size: cover;
+  background-position: center;
+  background-image:
+    linear-gradient(120deg,
+      rgba(76, 29, 149, .88) 0%,
+      rgba(109, 40, 217, .72) 55%,
+      rgba(76, 29, 149, .62) 100%),
+    var(--deco-img);
+}
+/* 2026-09-13 用户要求「图片不要重复」：每个产品页的两处色带各用一张不同的照片
+   （原来三页共用 decor-band / decor-band-alt 两张，会看出来是同一张） */
+.deco-band--xinlv-a    { --deco-img: url('/assets/band-xinlv-a.jpg'); }
+.deco-band--xinlv-b    { --deco-img: url('/assets/band-xinlv-b.jpg'); }
+.deco-band--phl-a      { --deco-img: url('/assets/band-phl-a.jpg'); }
+.deco-band--phl-b      { --deco-img: url('/assets/band-phl-b.jpg'); }
+.deco-band--hardware-a { --deco-img: url('/assets/band-hardware-a.jpg'); }
+.deco-band--hardware-b { --deco-img: url('/assets/band-hardware-b.jpg'); }
+.deco-band__inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+.deco-band__title {
+  margin: 0 0 12px;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(30, 27, 46, .45);
+}
+.deco-band__text {
+  margin: 0;
+  max-width: 40em;
+  color: rgba(255, 255, 255, .9);
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  text-shadow: 0 1px 4px rgba(30, 27, 46, .4);
+}
+
+/* ==========================================================================
+   4. 平台表格（横向溢出用滚动容器兜底，移动端不撑破视口）
+   ========================================================================== */
+.deco-table-wrap {
+  overflow-x: auto;
+  margin-top: 8px;
+  border: 1px solid var(--phix-lilac);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.deco-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9375rem;
+  min-width: 520px;
+}
+.deco-table th,
+.deco-table td {
+  text-align: left;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--phix-mist);
+  vertical-align: top;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+.deco-table thead th {
+  background: var(--phix-mist);
+  color: var(--ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.deco-table tbody tr:last-child td { border-bottom: none; }
+.deco-table td:first-child { white-space: nowrap; font-weight: 600; color: var(--ink); }
+.deco-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #EAF7EE;
+  border: 1px solid #9FD9B4;
+  color: #1C5A38;
+  font-size: .8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.deco-status--plan {
+  background: var(--phix-mist);
+  border-color: var(--phix-lilac);
+  color: var(--phix-violet-2);
+}
+
+/* ==========================================================================
+   5. 「怎么用」步骤
+   ========================================================================== */
+.deco-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.deco-steps li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  background: var(--paper);
+  border: 1px solid var(--phix-lilac);
+  border-radius: var(--radius-card);
+}
+.deco-step__num {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--phix-violet);
+  color: #fff;
+  font-weight: 700;
+  font-size: .9375rem;
+}
+.deco-step__body { min-width: 0; }
+.deco-step__body strong { display: block; color: var(--ink); margin-bottom: 2px; }
+.deco-step__body span { color: var(--ink-2); line-height: 1.7; font-size: .9375rem; }
+
+/* ==========================================================================
+   6. 数据与隐私（要点列表 + 强调）
+   ========================================================================== */
+.deco-privacy {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+.deco-privacy__item {
+  padding: 20px 22px;
+  background: var(--paper);
+  border: 1px solid var(--phix-lilac);
+  border-radius: var(--radius-card);
+}
+.deco-privacy__item h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--phix-violet-2);
+}
+.deco-privacy__item p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: .9375rem;
+  line-height: 1.75;
+}
+
+/* ==========================================================================
+   7. 常见问题（<details>/<summary> 折叠）
+   ========================================================================== */
+.deco-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.deco-faq details {
+  background: var(--paper);
+  border: 1px solid var(--phix-lilac);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.deco-faq summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 20px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  user-select: none;
+}
+.deco-faq summary::-webkit-details-marker { display: none; }
+.deco-faq summary::after {
+  content: "+";
+  margin-left: auto;
+  flex: none;
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--phix-violet);
+  line-height: 1;
+  transition: transform .2s ease;
+}
+.deco-faq details[open] summary::after { transform: rotate(45deg); }
+.deco-faq summary:hover { background: var(--phix-mist); }
+.deco-faq details[open] summary { background: var(--phix-mist); color: var(--phix-violet-2); }
+.deco-faq .deco-faq__body {
+  padding: 0 20px 18px;
+  margin: 0;
+  color: var(--ink-2);
+  line-height: 1.8;
+  font-size: .9375rem;
+}
+
+/* ==========================================================================
+   8. 期待清单（硬件页）
+   ========================================================================== */
+.deco-wishlist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.deco-wishlist li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px 20px;
+  background: var(--paper);
+  border: 1px solid var(--phix-lilac);
+  border-radius: 12px;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+.deco-wishlist li::before {
+  content: "✦";
+  flex: none;
+  color: var(--phix-violet);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+/* ==========================================================================
+   9. 末尾 CTA
+   ========================================================================== */
+.deco-cta {
+  margin-top: 8px;
+  padding: 40px 32px;
+  background: linear-gradient(135deg, var(--phix-mist), var(--phix-dusk));
+  border: 1px solid var(--phix-lilac);
+  border-radius: var(--radius-card);
+  text-align: center;
+}
+.deco-cta__title {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+.deco-cta__text {
+  margin: 0 0 24px;
+  color: var(--ink-2);
+  line-height: 1.7;
+}
+.deco-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   10. 功能对比表（「我该选哪个」：本产品 vs 另一个产品 vs PHL Lite）
+   2026-09-13 新增：顾问要求产品页多讲「选哪个」，六列（产品 + 五个对比项）
+   ========================================================================== */
+.deco-table--compare { min-width: 720px; }
+.deco-table--compare td:first-child { white-space: nowrap; }
+
+/* ==========================================================================
+   11. 正文辅助块：小字说明 / 三级标题 / 提示框（callout）
+   ========================================================================== */
+.deco-note {
+  margin: 18px 0 0;
+  max-width: 52em;
+  color: var(--ink-2);
+  font-size: .875rem;
+  line-height: 1.75;
+}
+.deco-note a { color: var(--phix-violet); font-weight: 600; }
+
+.deco-lead--tight { margin-top: 24px; margin-bottom: 0; }
+
+.deco-h3 {
+  margin: 34px 0 12px;
+  font-size: 1.25rem;
+  line-height: 1.35;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.deco-callout {
+  margin-top: 26px;
+  padding: 22px 24px;
+  background: var(--phix-mist);
+  border: 1px solid var(--phix-lilac);
+  border-left: 4px solid var(--phix-violet);
+  border-radius: var(--radius-card);
+}
+.deco-callout__title {
+  margin: 0 0 10px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--phix-violet-2);
+}
+.deco-callout__list {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: .9375rem;
+  line-height: 1.8;
+}
+.deco-callout__list strong { color: var(--ink); }
+
+/* ==========================================================================
+   12. 加密链路示意图（PHL「数据与隐私」里的 <figure>，窄屏不许溢出）
+   ========================================================================== */
+.deco-figure { margin: 0 0 8px; max-width: 100%; }
+.deco-figure__img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  background: var(--paper);
+  border: 1px solid var(--phix-lilac);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+.deco-figure__cap {
+  margin: 12px 0 0;
+  max-width: 60em;
+  color: var(--ink-2);
+  font-size: .875rem;
+  line-height: 1.7;
+}
+.deco-figure__cap small { display: block; margin-top: 4px; font-size: .8125rem; opacity: .85; }
+.deco-figure__cap a { color: var(--phix-violet); font-weight: 600; }
+
+/* ==========================================================================
+   13. 有序要点（加密链路六步）与「边界」卡片
+   ========================================================================== */
+.deco-chain {
+  list-style: none;
+  counter-reset: deco-chain;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+.deco-chain li {
+  position: relative;
+  counter-increment: deco-chain;
+  padding: 18px 20px 18px 58px;
+  background: var(--paper);
+  border: 1px solid var(--phix-lilac);
+  border-radius: var(--radius-card);
+  color: var(--ink-2);
+  font-size: .9375rem;
+  line-height: 1.75;
+}
+.deco-chain li strong { color: var(--ink); }
+.deco-chain li::before {
+  content: counter(deco-chain);
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--phix-violet);
+  color: #fff;
+  font-size: .8125rem;
+  font-weight: 700;
+}
+/* 无编号版本（硬件页「现在能说什么」用 ✦ 打头，全宽单列） */
+.deco-chain--plain { grid-template-columns: 1fr; counter-reset: none; }
+.deco-chain--plain li { counter-increment: none; padding-left: 46px; }
+.deco-chain--plain li::before {
+  content: "✦";
+  background: var(--phix-mist);
+  border: 1px solid var(--phix-lilac);
+  color: var(--phix-violet);
+  font-size: .9375rem;
+}
+
+.deco-boundary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  margin-top: 8px;
+}
+.deco-boundary__item {
+  padding: 20px 22px;
+  background: var(--paper);
+  border: 1px solid var(--phix-lilac);
+  border-left: 4px solid var(--phix-violet);
+  border-radius: var(--radius-card);
+}
+.deco-boundary__item h4 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--phix-violet-2);
+}
+.deco-boundary__item p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: .9375rem;
+  line-height: 1.75;
+}
+.deco-boundary__item strong { color: var(--ink); }
+
+/* 行内代码：长串（对象名 / 信封格式）在窄屏要能断行，否则会撑破视口 */
+.deco-note code,
+.deco-chain code,
+.deco-boundary code,
+.deco-callout code,
+.deco-privacy code,
+.deco-table code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .875em;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--phix-mist);
+  border: 1px solid var(--phix-lilac);
+  color: var(--phix-violet-2);
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   响应式：窄屏收敛，杜绝横向溢出
+   ========================================================================== */
+@media (max-width: 640px) {
+  .deco-section { padding: 48px 16px; }
+  .deco-hero__inner { padding: 36px 16px; }
+  .deco-band__inner { padding: 32px 16px; }
+  .deco-hero { min-height: clamp(240px, 40vh, 360px); }
+  .deco-chain { grid-template-columns: 1fr; }
+  .deco-chain li { padding-left: 52px; }
+  .deco-boundary { grid-template-columns: 1fr; }
+  .deco-figure__cap { font-size: .8125rem; }
+}

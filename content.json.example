@@ -1,0 +1,29 @@
+{
+  "_comment": "CMS 文案默认值示例。复制为 content.json 使用；真正的 content.json 是生产数据（后台可改），已在 .gitignore 里排除。",
+  "_defaults": {
+    "footer.contact_email": "norine.liu@icloud.com / huaziqian40@gmail.com",
+    "footer.contact_phone": "18901712280/13675821816",
+    "footer.contact_wechat": "Norine2010/int_32_2147483647",
+    "footer.contact_bilibili": "https://space.bilibili.com/1121702307",
+    "footer.copyright": "© 2026 phix",
+    "footer.blurb": "上海民办平和学校 · 维修社 · 用代码装点校园生活",
+    "home.kicker": "PHIX 维修社 · 上海民办平和学校",
+    "home.title": "Repair,Restore,Renew.",
+    "home.subtitle": "PHIX维修社是由平和学生自主创办的社团，旨在从学生的角度出发，做便捷的校园工具。",
+    "home.btn_primary": "了解学习工具",
+    "home.btn_ghost": "体验心履",
+    "home.repair_scope": "除了做校园工具，PHIX 维修社平时也在课余帮同学修东西：耳机、充电线、台灯、文具、雨伞、小电器这类日常小件都可以拿来。能修就修；修不好的，我们会说明原因。修好的记录会写进「PHIX 日志」。",
+    "home.repair_howto": "到「服务与支持」页面的反馈表单留言，写清东西哪里坏了、能不能开机或通电、方便的时间段；我们会回复能不能修、大概需要多久。",
+    "home.products_title": "三个产品，一种生活节奏",
+    "home.xinlv_desc": "每天一句话，把情绪轻轻放下——你的随身心情手账。",
+    "home.phl_desc": "课表、作业、邮箱一屏管完，校园信息不再散落各处。",
+    "home.phllite_desc": "轻量版：默认在本地独立运行，登录 phix 账号后可选开启云同步，适合偏好轻量功能的用户。",
+    "about.title": "关于我们",
+    "docs.title": "文档",
+    "download.title": "下载",
+    "support.title": "服务与支持",
+    "banner.notice": "📢 心履账号正在迁移到统一 phix 账号：**请直接用你原来的用户名和密码登录**，首次登录会自动为你创建 phix 账号并保留你的数据。心履站长/管理员（hzq、yourenatwo 为超管，BVV_d 为管理员）可直接登录管理后台。",
+    "home.subtitle_en": "Everything can be PHIXed"
+  },
+  "_overrides": {}
+}

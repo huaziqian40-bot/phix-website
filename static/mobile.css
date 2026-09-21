@@ -1,0 +1,459 @@
+/* ============================================================================
+   phix 手机版 · 基础层（全站手机版共用，三批页面都在这个文件上叠加自己的页面层）
+   只由 static/ua-switch.js 在手机 UA（或 ?mobile=1）时注入；桌面版永远不加载。
+   因此这里**每一条规则都写在 html.ua-mobile 之下**，不动桌面版一个字节。
+
+   页面级样式的限定方式：脚本会给 <html> 加 data-ua-page="home|about|support|…"
+   （页面里没有 id 可用，也不许改 HTML 结构，所以用属性选择器）。
+
+   目录
+   0) 令牌与基础排版（字号/行高/段落间距/图片/表格/表单）
+   1) 固定顶栏（≤56px）+ 汉堡按钮 + 右侧抽屉导航
+   2) 按钮（全宽、最小 44px 触摸目标）
+   3) 首页 [data-ua-page="home"]
+   4) 关于我们 [data-ua-page="about"]
+   5) 服务与支持 [data-ua-page="support"]
+   后两批在自己的 mobile-*.css 里继续加，别改本文件里已有的选择器。
+   ============================================================================ */
+
+/* ---- 0. 令牌与基础排版 ---------------------------------------------------- */
+html.ua-mobile {
+  --phix-topbar: 56px;
+  -webkit-text-size-adjust: 100%;
+}
+html.ua-mobile body {
+  font-size: 16px;
+  line-height: 1.75;
+  overflow-x: hidden;
+  /* 顶部留出固定顶栏的高度（顶栏 position:fixed），底部留出安全区 */
+  padding-top: var(--phix-topbar);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html.ua-mobile p { margin: 0 0 0.85em; }
+html.ua-mobile h1 { font-size: 1.5rem; line-height: 1.28; }
+html.ua-mobile h2 { font-size: 1.25rem; line-height: 1.32; }
+html.ua-mobile h3 { font-size: 1.0625rem; line-height: 1.4; }
+html.ua-mobile img,
+html.ua-mobile svg,
+html.ua-mobile video { max-width: 100%; }
+/* 页面里写死了高度的图片不能被上面的 height:auto 打回原尺寸：
+   html.ua-mobile 的权重(0,1,1) 高于 .brand img(0,1,1)+… 这类单类选择器，
+   所以顶栏 logo 与页脚 logo 都显式放行（见本节末与页脚一节）。 */
+html.ua-mobile .brand img,
+html.ua-mobile .phix-drawer__logo { height: auto; max-height: 34px; width: auto; }
+html.ua-mobile img:not(.site-footer__logo):not(.brand img):not(.phix-drawer__logo) { height: auto; }
+html.ua-mobile a { -webkit-tap-highlight-color: rgba(154, 43, 226, .16); }
+html.ua-mobile ul,
+html.ua-mobile ol { padding-left: 1.15em; }
+
+/* 长串（邮箱、微信 id、哈希）不许把页面撑破。
+   页脚联系区例外：只允许在分隔符处换行（见下方 .site-footer__contact p），
+   用 anywhere 会把域名从中间撕开（gmail.c / om）。 */
+html.ua-mobile .deco-card__value,
+html.ua-mobile .deco-table td { overflow-wrap: anywhere; }
+
+/* 表格：容器横向滚动，且不把父级撑宽 */
+html.ua-mobile .deco-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+html.ua-mobile table { max-width: 100%; }
+html.ua-mobile .deco-table { min-width: 0; }
+
+/* 抽屉打开时锁住背后的滚动 */
+html.ua-mobile.phix-nav-open,
+html.ua-mobile.phix-nav-open body { overflow: hidden; }
+
+/* ---- 1. 固定顶栏 + 汉堡 + 抽屉 ------------------------------------------- */
+/* 原顶栏（logo + 一排导航 + 服务与支持/下载/登录）在手机上直接换成汉堡：
+   桌面版顶栏在窄屏会折成两排、每项都换行，正是要避免的那堆东西。 */
+html.ua-mobile .site-header { display: none; }
+
+html.ua-mobile .phix-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* 含下边框一共 56px（验收口径是顶栏高度 ≤56px） */
+  height: var(--phix-topbar);
+  box-sizing: border-box;
+  padding: 0 12px;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0;
+  border-bottom: 1px solid var(--phix-lilac, #C4B5FD);
+  cursor: pointer;
+}
+html.ua-mobile .phix-menu__bars,
+html.ua-mobile .phix-menu__bars::before,
+html.ua-mobile .phix-menu__bars::after {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--phix-violet-2, #6D28D9);
+}
+html.ua-mobile .phix-menu__bars { position: relative; }
+html.ua-mobile .phix-menu__bars::before,
+html.ua-mobile .phix-menu__bars::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+html.ua-mobile .phix-menu__bars::before { top: -7px; }
+html.ua-mobile .phix-menu__bars::after { top: 7px; }
+/* 汉堡右侧补上站点 logo，免得只有三条杠看不出是谁的站
+   （2026-09-13 审图意见 4：96×26 偏小 → 110×30，只影响手机版） */
+html.ua-mobile .phix-menu::after {
+  content: "";
+  width: 110px;
+  height: 30px;
+  margin-left: 2px;
+  background: url("/assets/logo-transparent.png") left center / contain no-repeat;
+}
+
+html.ua-mobile .phix-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 90;
+  width: 84vw;
+  max-width: 340px;
+  height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper, #fff);
+  border-left: 1px solid var(--phix-lilac, #C4B5FD);
+  box-shadow: -12px 0 32px rgba(30, 27, 46, .22);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  /* 收起态：整块滑出右侧视口。visibility 一起切，免得只是"看不见"却还能被点到 */
+  transform: translateX(102%);
+  visibility: hidden;
+  transition: transform .24s ease, visibility .24s ease;
+}
+/* 放不下时底部渐隐，提示可以继续滚（.is-scrollable 由脚本按实际滚动位置切换） */
+html.ua-mobile .phix-drawer.is-scrollable {
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 56px), transparent 100%);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 56px), transparent 100%);
+}
+html.ua-mobile .phix-drawer.is-open { transform: translateX(0); visibility: visible; }
+html.ua-mobile .phix-drawer__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+}
+html.ua-mobile .phix-drawer__logo { height: 26px; width: auto; }
+html.ua-mobile .phix-drawer__close {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-btn, 10px);
+  background: var(--phix-mist, #F5F3FF);
+  color: var(--phix-violet-2, #6D28D9);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+html.ua-mobile .phix-drawer__nav { display: flex; flex-direction: column; padding-top: 4px; }
+/* 注意：选择器要带 :not()（理由见下文"触摸目标策略"里的维护提醒），
+   否则会被 `html.ua-mobile a:not(.btn)` 那条 reset 压回 inline、行高塌成 23px。 */
+html.ua-mobile .phix-drawer__nav a:not(.x) {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  color: var(--ink, #1E1B2E);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-decoration: none;
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+}
+html.ua-mobile .phix-drawer__nav a:active { background: var(--phix-mist, #F5F3FF); }
+html.ua-mobile .phix-drawer__group {
+  margin: 8px 8px 2px;
+  padding: 0;
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-2, #5B5670);
+}
+/* 子项（心履 / Pinghe Launcher）：只缩进文字，行盒与父项同宽、右边界一致；
+   与父项的层级靠字号(1rem)+字重(600)区分，这里不画任何背景面板。 */
+html.ua-mobile .phix-drawer__sub { padding: 6px 8px 6px 30px !important; font-weight: 500; font-size: .9375rem; }
+html.ua-mobile .phix-drawer__cta {
+  margin-top: 10px;
+  justify-content: center;
+  border-bottom: 0;
+  background: var(--phix-violet, #9A2BE2);
+  color: #fff;
+}
+html.ua-mobile .phix-drawer__cta:active { background: var(--phix-violet-2, #6D28D9); }
+
+/* ---- 2. 按钮：手机上全宽、最小 44px -------------------------------------- */
+html.ua-mobile .btn {
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  height: auto;
+  padding: 12px 20px;
+  font-size: 1rem;
+  line-height: 1.3;
+  text-align: center;
+}
+html.ua-mobile .hero__actions,
+html.ua-mobile .about-band__cta,
+html.ua-mobile .deco-band__cta,
+html.ua-mobile .deco-form__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+html.ua-mobile .deco-form__actions .btn { width: 100%; }
+
+html.ua-mobile .site-footer__links { flex-wrap: wrap; gap: 8px 20px; }
+
+/* ---------------------------------------------------------------------------
+   触摸目标策略（2026-09-13 第 2 批反馈后重做）
+   Apple 的 44px 指引针对**主要控件**；正文段落里的行内文本链接按惯例不适用。
+   上一版用了一条 `a:not(.btn){display:inline-block;min-height:44px;padding:10px 0}`
+   兜全局，把句子中间的行内链接也变成块级：整行被撑高、括号与链接被挤到不同行
+   （download 页 hero 的 xin-lv.com 比相邻文字低 36px、正文 checksums.txt 低 62px）。
+   现在分两类处理，且只做这两件事：
+     ① 行内文本链接（句子里面） → 恢复浏览器默认 inline，不用 min-height/padding；
+        只留颜色 + 下划线保证可识别（下划线见文件末尾"行内链接可识别性"一节）。
+     ② 块级/导航类链接（页头页脚导航、卡片 CTA、独立成行的链接） → 44px 触摸目标。
+
+   ⚠️ 维护提醒（2026-09-13 实测的浏览器行为，别踩）：
+   一旦页面里存在 `html.ua-mobile a:not(.btn)` 这条规则，**只有同样带 `:not()` 的选择器**
+   才能覆盖它的 display/min-height/padding —— 裸 `a{}`、`.product-card__cta{}`、
+   `html.ua-mobile .product-card__cta{}`、甚至元素上的内联 `style="min-height:44px"`
+   全都不起作用，只有 `!important` 或再加一个 `:not()` 才生效。
+   所以下面给块级链接加触摸目标时，选择器一律补一个无意义的 `:not(.x)` 保持同形。
+   --------------------------------------------------------------------------- */
+html.ua-mobile a:not(.btn) {
+  display: inline;
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+html.ua-mobile .site-footer__links a:not(.x),
+html.ua-mobile .hero__links a:not(.x),
+html.ua-mobile .product-card__cta:not(.x),
+html.ua-mobile .deco-card__value a:not(.x) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+/* 页脚"联系我们"里的邮箱/电话：列表式独立控件，也给 44px
+   （抽屉导航条目见上文第 1 节 `.phix-drawer__nav a`，那里已经是 flex + 46px，别在这里重复） */
+html.ua-mobile .site-footer__contact a:not(.x) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+/* 页脚联系区：只在分隔符处换行，绝不把域名撕开。
+   注意别用 overflow-wrap:anywhere —— 它会从域名中间断开（如 gmail.c / om）；
+   这里用 break-word（只在"实在没地方断"时才拆单词）＋ word-break:normal。
+   邮箱里两个地址之间是 " / "（content.json 的 footer.contact_email 默认值，
+   原来是斜杠无空格 → 一整串不可断字符，390 宽下会被从 gmail.com 中间撕开），
+   有了空格就有合法换行点，两个邮箱各自成行、域名完整。 */
+html.ua-mobile .site-footer__contact p {
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
+}
+html.ua-mobile .site-footer__email { line-height: 1.6; }
+
+/* ---- 3. 首页 [data-ua-page="home"] --------------------------------------- */
+/* hero：竖排。背景图仍是绝对定位的整块底，手机上高度由内容决定。 */
+html.ua-mobile[data-ua-page="home"] .hero {
+  min-height: 0;
+  aspect-ratio: auto;
+  display: block;
+  overflow: hidden;
+}
+html.ua-mobile[data-ua-page="home"] .hero__content {
+  padding: 30px 18px 34px;
+}
+/* hero 背景用压缩副本（820px 宽 / 108KB；原图 1280×2275 / 1.0MB），不覆盖原图。
+   原图是竖幅，桌面版靠 object-fit:cover 裁中间一段；手机上直接换整张更省的图。 */
+html.ua-mobile[data-ua-page="home"] .hero__photo { content: url("/assets/hero-campus-mobile.jpg"); }
+html.ua-mobile[data-ua-page="home"] .hero__kicker { font-size: 12px; letter-spacing: .14em; }
+/* 「repair restore renew」必须一行内可读：nowrap（copy-a.css 已定）+ 缩小字号，
+   390px 下 4.4vw≈17px、20 字符≈180px，远小于可用宽度；不换行、不溢出。 */
+html.ua-mobile[data-ua-page="home"] .hero__title,
+html.ua-mobile[data-ua-page="home"] .hero__title--latin {
+  font-size: clamp(1.05rem, 4.4vw, 1.6rem);
+  line-height: 1.2;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+html.ua-mobile[data-ua-page="home"] .hero__subtitle {
+  margin-top: 14px;
+  font-size: .9375rem;
+  line-height: 1.68;
+  max-width: none;
+}
+/* 「Everything can be PHIXed」独立一行 */
+html.ua-mobile[data-ua-page="home"] .hero__tagline-en {
+  margin: 8px 0 0;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+/* 两个按钮全宽竖排（.hero__actions 的竖排规则在 2 节） */
+html.ua-mobile[data-ua-page="home"] .hero__actions { margin-top: 22px; }
+/* 标签行可换行 */
+html.ua-mobile[data-ua-page="home"] .hero__links { margin-top: 18px; gap: 0 16px; font-size: .9375rem; }
+/* 卡片单列 */
+html.ua-mobile[data-ua-page="home"] .products { padding: 36px 18px 44px; }
+html.ua-mobile[data-ua-page="home"] .products__title { font-size: 1.375rem; }
+html.ua-mobile[data-ua-page="home"] .products__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: none;
+  margin: 0;
+  gap: 16px;
+}
+html.ua-mobile[data-ua-page="home"] .product-card { padding: 20px; }
+html.ua-mobile[data-ua-page="home"] .product-card__cta { margin-top: 6px; }
+/* 「维修服务」区块：窄屏也铺满整宽，不再留两侧空白 */
+html.ua-mobile[data-ua-page="home"] #repair.products,
+html.ua-mobile[data-ua-page="home"] #products.products { padding-left: 0; padding-right: 0; }
+html.ua-mobile[data-ua-page="home"] #repair .products__title,
+html.ua-mobile[data-ua-page="home"] #repair .info-block,
+html.ua-mobile[data-ua-page="home"] #products .products__title,
+html.ua-mobile[data-ua-page="home"] #products .products__grid { padding-left: 18px; padding-right: 18px; }
+html.ua-mobile[data-ua-page="home"] .info-block { margin-top: 0; }
+html.ua-mobile[data-ua-page="home"] .info-block__item + .info-block__item { margin-top: 18px; }
+html.ua-mobile[data-ua-page="home"] .info-block__desc { font-size: 1rem; line-height: 1.85; }
+
+/* ---- 4. 关于我们 [data-ua-page="about"] ---------------------------------- */
+/* 左右分栏（文字 / 照片）→ 上下排 */
+html.ua-mobile[data-ua-page="about"] .about-split {
+  display: block;
+  padding: 26px 18px 36px;
+}
+html.ua-mobile[data-ua-page="about"] .about-split__text { max-width: none; }
+html.ua-mobile[data-ua-page="about"] .about-split__text h1 { font-size: 1.6rem; margin-bottom: 14px; }
+html.ua-mobile[data-ua-page="about"] .about-split__text h2 { font-size: 1.2rem; margin: 26px 0 10px; }
+html.ua-mobile[data-ua-page="about"] .about-split__text p,
+html.ua-mobile[data-ua-page="about"] .about-split__text .info-block__desc { font-size: 1rem; line-height: 1.85; }
+html.ua-mobile[data-ua-page="about"] .about-values { padding-left: 0; }
+html.ua-mobile[data-ua-page="about"] .about-values li { font-size: 1rem; line-height: 1.8; }
+/* 照片：圆角、不超宽、不超出屏幕；手机上去掉桌面版那个「向左渐隐」遮罩（会吃掉一半图） */
+html.ua-mobile[data-ua-page="about"] .about-split__media {
+  height: auto;
+  margin: 24px 0 0;
+  max-width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-card, 16px);
+  overflow: hidden;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+html.ua-mobile[data-ua-page="about"] .about-split__media img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: 100%;
+  object-fit: cover;
+}
+html.ua-mobile[data-ua-page="about"] .about-split__caption { right: 14px; bottom: 12px; font-size: .8125rem; }
+html.ua-mobile[data-ua-page="about"] .about-band__inner { padding: 34px 18px 38px; }
+html.ua-mobile[data-ua-page="about"] .about-band__title { font-size: 1.5rem; }
+html.ua-mobile[data-ua-page="about"] .about-band__copy { font-size: 1rem; line-height: 1.8; margin-bottom: 20px; }
+
+/* ---- 5. 服务与支持 [data-ua-page="support"] ------------------------------ */
+html.ua-mobile[data-ua-page="support"] .deco-hero__inner { padding: 30px 18px 34px; }
+html.ua-mobile[data-ua-page="support"] .deco-hero__title { font-size: 1.6rem; }
+html.ua-mobile[data-ua-page="support"] .deco-hero__subtitle,
+html.ua-mobile[data-ua-page="support"] .deco-hero__note { font-size: .9375rem; line-height: 1.72; }
+html.ua-mobile[data-ua-page="support"] .deco-section { padding-left: 18px; padding-right: 18px; }
+html.ua-mobile[data-ua-page="support"] .deco-section__title { font-size: 1.3rem; }
+html.ua-mobile[data-ua-page="support"] .deco-section__lead { font-size: .9375rem; }
+/* 排查步骤：卡片单列 + 编号圆点移到标题上方（不再靠左占位挤窄正文） */
+html.ua-mobile[data-ua-page="support"] .deco-steps { display: grid; grid-template-columns: 1fr; gap: 14px; }
+html.ua-mobile[data-ua-page="support"] .deco-step { padding: 20px; }
+html.ua-mobile[data-ua-page="support"] .deco-step__num {
+  position: static;
+  width: 36px;
+  height: 36px;
+  margin: 0 0 10px;
+}
+html.ua-mobile[data-ua-page="support"] .deco-step__title { font-size: 1rem; }
+html.ua-mobile[data-ua-page="support"] .deco-step__text { font-size: .9375rem; line-height: 1.78; }
+/* FAQ：问答块上下排（问句一行、答案一段），点开区域 ≥44px */
+html.ua-mobile[data-ua-page="support"] .deco-faq { gap: 10px; }
+html.ua-mobile[data-ua-page="support"] .deco-faq__q {
+  display: block;
+  padding: 14px 16px;
+  min-height: 48px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+html.ua-mobile[data-ua-page="support"] .deco-faq__q::after { float: right; margin-left: 12px; }
+html.ua-mobile[data-ua-page="support"] .deco-faq__a { padding: 0 16px 16px; font-size: .9375rem; }
+/* 联系方式卡片：单列，tel/mailto/B站 仍可点，且每个 ≥44px */
+html.ua-mobile[data-ua-page="support"] .deco-cards { display: grid; grid-template-columns: 1fr; gap: 12px; }
+html.ua-mobile[data-ua-page="support"] .deco-card { padding: 18px; }
+html.ua-mobile[data-ua-page="support"] .deco-card__value { font-size: 1rem; line-height: 1.7; }
+/* 表格：容器横向滚动（0 节已给 overflow-x:auto） */
+html.ua-mobile[data-ua-page="support"] .deco-table-wrap { border-radius: var(--radius-card, 16px); }
+html.ua-mobile[data-ua-page="support"] .deco-table { width: auto; min-width: 100%; font-size: .9375rem; }
+html.ua-mobile[data-ua-page="support"] .deco-table th,
+html.ua-mobile[data-ua-page="support"] .deco-table td { padding: 12px 14px; }
+html.ua-mobile[data-ua-page="support"] .deco-table td:first-child { white-space: normal; }
+/* 反馈表单：字段全宽、控件 ≥44px */
+html.ua-mobile[data-ua-page="support"] .deco-form { margin-top: 8px; }
+html.ua-mobile[data-ua-page="support"] .deco-form .field input,
+html.ua-mobile[data-ua-page="support"] .deco-form .field select,
+html.ua-mobile[data-ua-page="support"] .deco-form .field textarea {
+  width: 100%;
+  min-height: 46px;
+  font-size: 1rem;
+}
+html.ua-mobile[data-ua-page="support"] .deco-form .field textarea { min-height: 120px; }
+html.ua-mobile[data-ua-page="support"] .deco-band__inner { padding: 34px 18px 38px; }
+html.ua-mobile[data-ua-page="support"] .deco-band__title { font-size: 1.5rem; }
+html.ua-mobile[data-ua-page="support"] .deco-ai-note { font-size: .9375rem; line-height: 1.78; }
+
+/* ---- 页脚（三页共用，属于基础层）---------------------------------------- */
+html.ua-mobile .site-footer__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 32px 18px;
+}
+/* 页脚 logo：基础排版里那条 img{height:auto} 权重(0,1,1) 会盖掉
+   .site-footer__logo{height:28px}(0,1,0)，所以这里显式给高度。
+   2026-09-13 审图意见 1：手机上从 28px 放宽到 34px（桌面仍是 28px，不受影响）。 */
+html.ua-mobile .site-footer__logo { height: 34px; width: auto; max-height: none; }
+html.ua-mobile .site-footer__contact { min-width: 0; }
+html.ua-mobile .site-footer__contact p { font-size: .875rem; line-height: 1.7; }
+html.ua-mobile .site-footer__copy { padding: 0 18px 24px; font-size: .8125rem; }
+
+/* ---- 横屏（手机横放）时别把 hero 撑太高 ---------------------------------- */
+@media (orientation: landscape) and (max-height: 480px) {
+  html.ua-mobile[data-ua-page="home"] .hero__content { padding: 20px 18px 24px; }
+}

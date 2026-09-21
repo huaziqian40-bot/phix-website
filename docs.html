@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>文档 · PHIX 维修社 · 上海民办平和学校</title>
+<link rel="stylesheet" href="/static/site.css">
+<link rel="stylesheet" href="/static/copy-c.css">
+<meta name="mobile-css" content="/static/mobile-docs.css">
+<script src="/static/ua-switch.js"></script>
+</head>
+<body>
+
+
+<header class="docs-topbar">
+  <a class="docs-topbar__brand" href="/" aria-label="返回 phix 首页">
+    <img src="/assets/logo-transparent.png" alt="phix">
+    <h1 class="docs-topbar__title">PHIX 技术文档</h1>
+  </a>
+  <div class="site-header__actions">
+    <a class="nav__link" href="/about/">关于我们</a>
+    <a class="nav__link" href="/products/xinlv/">产品</a>
+    <a class="nav__link" href="/docs/">文档</a>
+    <a class="nav__link" href="/log/">PHIX 日志</a>
+    <a class="nav__link" href="/download/">下载</a>
+    <a class="nav__link" href="/login/" id="auth-btn">登录·注册</a>
+  </div>
+</header>
+
+<div class="docs-shell">
+  <nav class="docs-nav" id="docs-nav" aria-label="文档目录">
+    <details class="docs-nav__group">
+      <summary class="docs-nav__group-title">快速开始 <svg class="docs-nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+      <a class="docs-nav__link" href="#overview">概览</a>
+      <a class="docs-nav__link" href="#platforms">支持的平台</a>
+      <a class="docs-nav__link" href="#quickstart">五分钟上手</a>
+    </details>
+    <details class="docs-nav__group">
+      <summary class="docs-nav__group-title">账号与登录 <svg class="docs-nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+      <a class="docs-nav__link" href="#unified-account">统一账号</a>
+      <a class="docs-nav__link" href="#authhash">AuthHash 与口令派生</a>
+      <a class="docs-nav__link" href="#legacy-migration">旧账号迁移</a>
+      <a class="docs-nav__link" href="#change-password">修改密码</a>
+    </details>
+    <details class="docs-nav__group">
+      <summary class="docs-nav__group-title">安全设计 <svg class="docs-nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+      <a class="docs-nav__link" href="#key-hierarchy">三层密钥</a>
+      <a class="docs-nav__link" href="#envelope">对象加密信封</a>
+      <a class="docs-nav__link" href="#transport-encryption">传输加密</a>
+      <a class="docs-nav__link" href="#pinning-replay">公钥固定与抗重放</a>
+    </details>
+    <details class="docs-nav__group">
+      <summary class="docs-nav__group-title">令牌与会话 <svg class="docs-nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+      <a class="docs-nav__link" href="#access-token">访问令牌</a>
+      <a class="docs-nav__link" href="#refresh-rotation">Refresh 轮换</a>
+      <a class="docs-nav__link" href="#grace-period">宽限期</a>
+      <a class="docs-nav__link" href="#jwks-verification">公钥验签</a>
+    </details>
+    <details class="docs-nav__group">
+      <summary class="docs-nav__group-title">云同步 <svg class="docs-nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+      <a class="docs-nav__link" href="#sync-objects">同步对象一览</a>
+      <a class="docs-nav__link" href="#version-conflict">版本与冲突</a>
+      <a class="docs-nav__link" href="#quota-limits">配额与限流</a>
+    </details>
+    <details class="docs-nav__group">
+      <summary class="docs-nav__group-title">平台 <svg class="docs-nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+      <a class="docs-nav__link" href="#platform-xinlv">心履</a>
+      <a class="docs-nav__link" href="#platform-phl">Pinghe Launcher</a>
+      <a class="docs-nav__link" href="#platform-phll">Pinghe Launcher Lite</a>
+    </details>
+    <details class="docs-nav__group">
+      <summary class="docs-nav__group-title">附录 <svg class="docs-nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+      <a class="docs-nav__link" href="#error-codes">错误码</a>
+      <a class="docs-nav__link" href="#faq">常见问题</a>
+      <a class="docs-nav__link" href="#privacy">隐私与数据安全</a>
+    </details>
+  </nav>
+
+  <div class="docs-content">
+    <h1 class="docs-content__title">技术文档</h1>
+    <p class="docs-content__intro">以下是 phix 系统的公开技术架构说明。所有敏感细节（密钥、令牌实例）均已脱敏。</p>
+
+    <section class="docs-section">
+      <h2 id="overview">概览</h2>
+      <p>phix 是一套把「心履」「Pinghe Launcher」「Pinghe Launcher Lite」打通的统一账号系统：一套用户名 + 密码登录，端到端加密地<strong>跨设备同步</strong>日程、选课、账号、课表、心情记录等数据。</p>
+      <ul>
+        <li>服务端只做三件事：管账号、发令牌、存不透明密文对象。</li>
+        <li>所有数据在客户端本地加密后上传，服务端只保存密文，没有你的口令与密钥就看不懂内容。</li>
+        <li>本页是 phix 的公开技术说明，所有密钥与令牌细节均已脱敏。</li>
+      </ul>
+      <div class="callout callout--info"><span class="callout__icon" aria-hidden="true">ℹ️</span><p>服务端没有任何密码学依赖，看不懂用户上传的内容；它只存「密文信封 + 令牌 + 密钥包裹」。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="platforms">支持的平台</h2>
+      <p>三个产品共用同一套账号与数据模型，登录同一账号即可<strong>跨设备同步</strong>：心履是<strong>四端</strong>（网页版 + Windows + macOS + Android），Pinghe Launcher 是桌面端（Windows / macOS 13+）加网页版，Pinghe Launcher Lite 是轻量桌面端。</p>
+      <div class="docs-table-wrap">
+        <table class="docs-table">
+          <thead><tr><th>平台</th><th>定位</th><th>技术栈 / 形态</th></tr></thead>
+          <tbody>
+            <tr><td><code>心履</code></td><td>心情记录 + 日程提醒</td><td>四端：网页端（Django）、桌面端（JavaFX，Windows / macOS）、安卓端（Java + Room），跨设备同步</td></tr>
+            <tr><td>Pinghe Launcher</td><td>日程与校园信息中枢</td><td>桌面端（Electron，Windows / macOS 13+）；网页版（<code>/app/</code>）只有日程 / EduPage / ManageBac / 邮箱四个入口，不做真实收发</td></tr>
+            <tr><td>Pinghe Launcher Lite</td><td>轻量日程助手</td><td>桌面端（Python）；本地独立可用，登录 phix 账号后可选开启云同步</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="quickstart">五分钟上手</h2>
+      <ol>
+        <li>到「下载」页选择对应平台的客户端并安装。</li>
+        <li>首次启动选择「有 phix 账号」或「没有」。</li>
+        <li>有账号 → 直接登录；没有 → 注册，注册时记下一次性展示的恢复码。</li>
+        <li>登录后自动拉一次云同步，数据在各设备之间同步。</li>
+        <li>换设备时用同一账号登录，即可恢复云端数据。</li>
+      </ol>
+      <div class="callout callout--info"><span class="callout__icon" aria-hidden="true">ℹ️</span><p>引导期间任何一步失败都不阻塞，可以选择「跳过 / 稍后再说」；离线也能正常使用，联网后自动补齐同步。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="unified-account">统一账号</h2>
+      <p>一套用户名 + 密码，登录所有客户端与网页端；各产品不各自存密码。</p>
+      <ul>
+        <li>登录时在本地派生出登录凭证交给 phix 校验，通过即建立或关联本地账号。</li>
+        <li>用户名只允许字母 / 数字 / 下划线 / 点 / <code>@</code> / <code>+</code> / <code>-</code> / 中文，最长 150 字符。</li>
+        <li>服务端存的是派生后的登录凭证（AuthHash），不是口令本身。</li>
+      </ul>
+      <div class="callout callout--safe"><span class="callout__icon" aria-hidden="true">🛡️</span><p>服务端只保存密文，你的口令与密钥不上传——它只收到派生出的 AuthHash，反推不出口令。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="authhash">AuthHash 与口令派生</h2>
+      <p>客户端在本地派生登录凭证，只把 <code>AuthHash</code> 发给服务器。两代 KDF 都支持：</p>
+      <ul>
+        <li><strong>v1</strong>：<code>scrypt-n15-r8-p1</code>（scrypt N=2^15、r=8、p=1），由口令直接派生 KEK，服务端比对口令原文的兼容路径。</li>
+        <li><strong>v2</strong>：<code>scrypt-hkdf-v2</code> —— <code>MK = scrypt(口令, salt)</code>，再由 HKDF 派生：<code>HKDF("auth")</code> 得 AuthHash（发服务器、用于登录校验），<code>HKDF("enc")</code> 得 KEK（<strong>永不出客户端</strong>）。</li>
+        <li>两条盐链分开：<code>auth_salt</code> 派生 AuthHash（注册后不变）；<code>kdf_salt</code> 派生 KEK（改密码时会变）。<strong>不可混用</strong>。</li>
+      </ul>
+      <pre><code>v2: 口令 --scrypt--> MK ──HKDF("auth")──> AuthHash（发服务器，登录校验）
+                     └──HKDF("enc")──> KEK（永不出客户端，本地解包 DEK）</code></pre>
+      <div class="callout callout--safe"><span class="callout__icon" aria-hidden="true">🛡️</span><p>HKDF 是单向的：拿到 AuthHash 反推不出口令、也算不出 KEK——即使服务器被入侵并记下登录时收到的一切，也解不开你的云端数据。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="legacy-migration">旧账号迁移</h2>
+      <p>老用户用<strong>原用户名 + 原密码</strong>登录，官网 / 心履在本地与旧哈希比对：</p>
+      <ul>
+        <li>比对通过 → 用该口令在 phix 建号并关联，数据无缝迁移；<strong>口令明文从不发给 phix</strong>（只发本地派生的 AuthHash）。</li>
+        <li>phix 不可达 → 不迁移，退回本地账号校验，不影响离线使用。</li>
+        <li>新账号默认 <code>scrypt-hkdf-v2</code>，服务端永不见口令；老账号（v1）走 <code>scrypt-n15-r8-p1</code> 兼容路径。</li>
+      </ul>
+      <div class="callout callout--info"><span class="callout__icon" aria-hidden="true">ℹ️</span><p>迁移采用「认证委托」：不改数据、不迁库。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="change-password">修改密码</h2>
+      <ul>
+        <li>换密码只需在客户端用旧口令解包 DEK、再用新口令重新包裹（替换 <code>key_wrap</code>），云端密文一个字节都不用动。</li>
+        <li>换登录密码必须同时换 AuthHash（登录凭证）；切同步口令时 AuthHash 不变。</li>
+        <li>注册时生成 24 位恢复码（base32），一次性展示；忘记口令时用恢复码解包 DEK 重设口令。</li>
+      </ul>
+      <div class="callout callout--note"><span class="callout__icon" aria-hidden="true">⚠️</span><p>换密码 ≠ 重新加密数据：只更换「包裹 DEK 的那把钥匙」，密文不动。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="key-hierarchy">三层密钥</h2>
+      <p>phix 采用三层密钥架构，确保换密码时云端数据无需重新加密：</p>
+      <pre><code>口令 →(scrypt/HKDF)→ KEK →(解开)→ DEK →(HKDF)→ 对象密钥 →(AES-GCM)→ 密文信封</code></pre>
+      <ul>
+        <li><strong>DEK（Data Encryption Key）</strong>：随机生成的 32 字节根密钥，是所有数据的根。</li>
+        <li><strong>KEK（Key Encryption Key）</strong>：由口令派生而来（派生方式见「AuthHash 与口令派生」），专门用来包裹 DEK。</li>
+        <li><strong>对象密钥</strong>：由 DEK 经 HKDF 派生，每个同步对象有独立的对象密钥，绑定用户名与对象名。</li>
+      </ul>
+      <div class="callout callout--safe"><span class="callout__icon" aria-hidden="true">🛡️</span><p>服务端只保存密文，你的口令与密钥不上传；换密码只重新包裹 DEK，云端密文无需重新加密。</p></div>
+      <figure class="docs-figure">
+        <img src="/assets/encryption-chain.svg" alt="phix 端到端加密链路示意">
+        <figcaption>端到端加密链路：口令经 scrypt 派生 KEK，KEK 解开 DEK，DEK 经 HKDF 派生每个对象独立的对象密钥，对象密钥以 AES-256-GCM 加密出 <code>PHIX1.&lt;nonce&gt;.&lt;密文&gt;</code> 信封上传；服务端只保存密文。AAD 把用户与对象名绑进认证范围，服务端把对象张冠李戴就解不开；换密码只需用新口令重新包裹 DEK，云端密文一个字节都不用重传。</figcaption>
+      </figure>
+      <p>按图从上到下走一遍：</p>
+      <ol>
+        <li><strong>口令 → KEK</strong>：口令在客户端经 scrypt 派生 KEK，KEK 只在本机内存里用，从不上传。</li>
+        <li><strong>KEK → DEK</strong>：KEK 解开被包裹的 DEK（32 字节根密钥）；服务端存的是「包裹后的 DEK」，没有口令解不开。</li>
+        <li><strong>DEK → 对象密钥</strong>：DEK 经 HKDF 派生<em>每个对象独立</em>的对象密钥，对象名与用户名一起吃进派生输入。</li>
+        <li><strong>对象密钥 → 密文信封</strong>：对象密钥以 AES-256-GCM 加密数据，产出 <code>PHIX1.&lt;nonce&gt;.&lt;密文||tag&gt;</code>；AAD 绑定 <code>phix/v1/object|{user_id}|{对象名}</code>。</li>
+        <li><strong>上传</strong>：客户端只把密文信封交给服务端，服务端只保存密文，看不到明文内容。</li>
+        <li><strong>换密码</strong>：用旧口令解开 DEK、再用新口令重新包裹一次即可，云端密文不用重传，也不必重新加密。</li>
+      </ol>
+      <div class="callout callout--note"><span class="callout__icon" aria-hidden="true">⚠️</span><p>代价是：端到端加密没有「找回」。登录口令与注册时的一次性恢复码都丢失后，云端数据将无法解开——请把恢复码单独保存好。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="envelope">对象加密信封</h2>
+      <p>同步的最小单位是一个具名对象，内容是一段密文信封，服务端完全不理解内容。</p>
+      <ul>
+        <li>信封格式：<code>PHIX1.&lt;base64url(nonce)&gt;.&lt;base64url(密文||tag)&gt;</code>，一个字符串便于存 JSON。</li>
+        <li>AES-256-GCM：12 字节随机 nonce，密文尾部含 16 字节认证 tag；base64url 无填充。</li>
+        <li>两族 AAD：身份族前缀 <code>phix/v1/identity|…</code>（<code>key_wrap</code> / <code>recovery_wrap</code> / <code>key_check</code>）；对象族 <code>phix/v1/object|{user_id}|{对象名}</code>（所有同步对象），绑定用户与对象名，服务端张冠李戴就解不开。</li>
+      </ul>
+      <pre><code>PHIX1.&lt;base64url(nonce)&gt;.&lt;base64url(ciphertext || tag)&gt;</code></pre>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="transport-encryption">传输加密</h2>
+      <p>应用层加密：即使没有 HTTPS，网线上也只有密文。每个请求 / 响应都经过 X25519 密封盒 + HKDF（info <code>phix/v1/seal</code>）+ AES-256-GCM，临时会话密钥每次请求随机换一把。</p>
+      <pre><code>请求：X-Phix-Enc: 1
+内层 = {方法, 路径, 查询串, 请求体, 时间戳, nonce}
+密文 = AES-256-GCM(会话密钥, iv, JSON(内层), aad="phix/v1/req|{方法}|{路径}")
+体   = {sealed_sk, iv, ct}</code></pre>
+      <p>带 <code>X-Phix-Enc: 1</code> 头的请求走加密路径；没有该头则走明文路径，兼容老客户端与调试工具。</p>
+      <div class="callout callout--info"><span class="callout__icon" aria-hidden="true">ℹ️</span><p>这一层保护「网线上怎么走」，不替代「服务器上怎么存」；两层独立，都要有。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="pinning-replay">公钥固定与抗重放</h2>
+      <ul>
+        <li><strong>公钥固定</strong>：客户端首次连接时信任服务器公钥并固定；之后对不上就拒绝连接，防中间人冒充。</li>
+        <li><strong>抗重放</strong>：时间戳允许 ±300 秒偏差 + nonce 5 分钟去重；两者都在密文里，网线上改不了。</li>
+      </ul>
+      <div class="callout callout--safe"><span class="callout__icon" aria-hidden="true">🛡️</span><p>有人冒充服务器时公钥对不上即拒绝连接；重放的旧请求会被 nonce 去重拦下。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="access-token">访问令牌</h2>
+      <ul>
+        <li>Ed25519 签名的 JWT，有效期 900 秒（15 分钟）。</li>
+        <li>包含用户 ID、会话 ID、签发时间与过期时间，签名在令牌里，改不了。</li>
+        <li>业务机可用公钥本地验签，不必回连认证中心。</li>
+      </ul>
+      <pre><code>payload = {"sub": "&lt;user_id&gt;", "sid": "&lt;会话id&gt;",
+           "iat": …, "exp": …, "jti": …, "typ": "access"}</code></pre>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="refresh-rotation">Refresh 轮换</h2>
+      <ul>
+        <li>refresh 令牌有效期 30 天，只能用来换新访问令牌，不能调业务接口。</li>
+        <li>用一次换一次（轮换）：成功后旧 refresh 作废、发一个新的，客户端必须存下新的。</li>
+        <li>refresh 只存摘要（SHA-256 指纹）；明文只在签发那一刻返回一次。</li>
+      </ul>
+      <div class="callout callout--note"><span class="callout__icon" aria-hidden="true">⚠️</span><p>换来的新 refresh 一定要存下来，否则旧令牌失效后就得重新登录。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="grace-period">宽限期</h2>
+      <ul>
+        <li>并发续期时两个请求可能手里都是同一个 refresh，这不是攻击。</li>
+        <li>120 秒宽限期内用旧令牌 → 200 + <code>rotated:false</code>，不重发新的。</li>
+        <li>超出窗口再用旧令牌 = 重放 → 撤销整个会话。</li>
+      </ul>
+      <div class="callout callout--note"><span class="callout__icon" aria-hidden="true">⚠️</span><p>宽限期只覆盖「同一会话、几秒内的并发续期」，不是允许重放。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="jwks-verification">公钥验签</h2>
+      <ul>
+        <li>签名公钥通过 <code>/auth/jwks</code> 端点发布（JWKS 格式，免认证）。</li>
+        <li>别的服务只拿公钥就能验签，不必共享密钥。</li>
+        <li><code>kid</code> = 公钥 SHA-256 前 16 位；健康探测里也有，客户端可据此察觉服务器换钥匙。</li>
+      </ul>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="sync-objects">同步对象一览</h2>
+      <p>同步的最小单位是一个具名对象，内容是一段密文信封，服务端只存密文：</p>
+      <div class="docs-table-wrap">
+        <table class="docs-table">
+          <thead><tr><th>对象名</th><th>内容</th><th>谁写</th></tr></thead>
+          <tbody>
+            <tr><td><code>settings.accounts</code></td><td>四平台凭据（邮箱 / ManageBac / Edupage / 心履），两层字典、端到端加密</td><td>客户端；官网个人中心可读改写</td></tr>
+            <tr><td><code>settings.lessons</code></td><td>选课（教学组）</td><td>客户端</td></tr>
+            <tr><td><code>settings.ui</code></td><td>界面排序偏好</td><td>客户端</td></tr>
+            <tr><td><code>settings.ai</code></td><td>AI 供应商与 Key</td><td>客户端</td></tr>
+            <tr><td><code>schedule</code></td><td>日程 <code>{id, day, time, title, note, created}</code></td><td>客户端 / Pinghe Launcher 网页版</td></tr>
+            <tr><td><code>timetable</code></td><td>课表（按教学组展开的周视图）</td><td>客户端</td></tr>
+            <tr><td><code>school</code></td><td>学校数据快照（课表 / 作业 / 邮箱摘要，来自 EduPage 与 ManageBac 的抓取缓存）</td><td>客户端；Pinghe Launcher 网页版只读</td></tr>
+            <tr><td><code>profile</code></td><td><code>{display_name, avatar（data URL，≤200KB，上传前压到 256×256）, updated_at}</code></td><td>任一端；官网个人中心可改头像</td></tr>
+            <tr><td><code>mood</code></td><td>心情记录 <code>{"entries":[{id, ts, text, intensity}]}</code></td><td>心履客户端</td></tr>
+            <tr><td><code>agent:&lt;会话id&gt;</code></td><td>AI 会话记录（每个会话一个对象）</td><td>客户端</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>各端的<strong>默认同步清单</strong>略有差异：Pinghe Launcher 默认 7 个（<code>settings.accounts</code>、<code>settings.lessons</code>、<code>settings.ui</code>、<code>schedule</code>、<code>timetable</code>、<code>school</code>、<code>profile</code>），Pinghe Launcher Lite 默认 8 个（再加 <code>mood</code>），官网与心履只碰各自需要的对象。可以按需增减，清单只是客户端的默认值。</p>
+      <div class="callout callout--info"><span class="callout__icon" aria-hidden="true">ℹ️</span><p>这些只是「对象名」，服务端只存密文、零改动即可支持新增对象；对象名会进入 HKDF 与 AAD，改动即等于换密钥。对象名以字母数字开头，可含 <code>. _ : -</code> 三种符号。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="version-conflict">版本与冲突</h2>
+      <ul>
+        <li>每个对象有 <code>revision</code>，单调递增；服务端不会静默覆盖。</li>
+        <li>乐观锁：客户端带 <code>base_revision</code> 写入，对不上返回 409，客户端拉最新 → 解密 → 合并 → 重推（最多 3 次）。</li>
+        <li>删除 = 写入墓碑（revision 照常 +1），避免「删了又被别的设备同步回来」；服务端保留每个对象最近 10 个 revision。</li>
+      </ul>
+      <pre><code>PUT /sync/objects/&lt;name&gt;
+{"base_revision": 4, "payload": "PHIX1.…", "device": "笔记本"}
+→ 成功 200；冲突 409 revision_conflict</code></pre>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="quota-limits">配额与限流</h2>
+      <p><strong>配额</strong>（每账号）：</p>
+      <div class="docs-table-wrap">
+        <table class="docs-table">
+          <thead><tr><th>项</th><th>默认值</th></tr></thead>
+          <tbody>
+            <tr><td>单对象密文上限</td><td>8 MiB</td></tr>
+            <tr><td>对象数</td><td>2000</td></tr>
+            <tr><td>总容量</td><td>200 MiB</td></tr>
+            <tr><td>单次批量同步</td><td>50 个对象</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>限流</strong>（每 IP 每小时）：</p>
+      <div class="docs-table-wrap">
+        <table class="docs-table">
+          <thead><tr><th>项</th><th>默认值</th></tr></thead>
+          <tbody>
+            <tr><td>注册</td><td>10 次</td></tr>
+            <tr><td>找回（恢复码）</td><td>8 次</td></tr>
+            <tr><td>取密钥材料</td><td>60 次</td></tr>
+            <tr><td>刷新令牌</td><td>120 次</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout--note"><span class="callout__icon" aria-hidden="true">⚠️</span><p>以上均为默认值，部署时可调；限流在服务进程内存里维护，将来多进程部署需换成共享存储。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="platform-xinlv">心履</h2>
+      <p>心履是一套「记录心情 + 日程提醒」的客户端矩阵，四端共用同一账号与数据模型：</p>
+      <ul>
+        <li>网页端：Django + waitress，部署在社团服务器上对外服务。</li>
+        <li>桌面端：JavaFX 打包（Windows 出 exe、macOS 出 DMG），本地 SQLite 存离线数据。</li>
+        <li>安卓端：原生 Java + Gradle 构建（Room 本地库，compileSdk 36 / minSdk 26），签名 APK 分发。</li>
+      </ul>
+      <p>账号打通：登录时本地派生 AuthHash 交 phix 校验；phix 不可用时退回本地账号校验，不影响离线使用。服务间调用 phix 校验接口时带共享服务密钥，请求同样走应用层信封。</p>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="platform-phl">Pinghe Launcher</h2>
+      <p>Pinghe Launcher 是「日程与校园信息中枢」：课表、作业、邮箱、日程一屏管完。</p>
+      <ul>
+        <li><strong>桌面端</strong>：Electron，支持 Windows 与 macOS 13.0 及以上。</li>
+        <li><strong>邮箱（桌面端）</strong>：通过 IMAP 读取平和邮箱，默认只拉<strong>最近 100 封</strong>，以<strong>纯文本</strong>展示、<strong>不加载外部图片</strong>；邮箱授权码只用于连接学校邮箱服务器。邮件内容不交给 AI。</li>
+        <li><strong>网页版（<code>/app/</code>）</strong>：只有<strong>日程 / EduPage / ManageBac / 邮箱入口</strong>四个标签，<strong>不做真实收发</strong>，邮箱页只提示「去客户端收发」。</li>
+        <li><strong>AI 助手</strong>：有「本地 / API」两种模式，<strong>只有本地模式不出本机</strong>；用 API 模式时回复由第三方服务商生成，发给它的内容会离开本机。</li>
+        <li>ManageBac / EduPage：同步对应凭据并在客户端内打开，网页版同样只做到入口一级。</li>
+      </ul>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="platform-phll">Pinghe Launcher Lite</h2>
+      <p>Pinghe Launcher Lite 是轻量日程助手，适合偏好轻量功能的用户。</p>
+      <ul>
+        <li>桌面端：Python，支持 Windows 与 macOS。</li>
+        <li><strong>本地独立可用</strong>：不登录也能正常使用；登录 phix 账号后可自行选择是否开启云同步。</li>
+        <li>与 Pinghe Launcher 共用同一套本地共享数据（课表 / 学校快照 / 账号）；两程序不同时运行，天然不会打架。</li>
+      </ul>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="error-codes">错误码</h2>
+      <p>错误统一为 <code>{"error": {"code": "...", "message": "中文说明"}}</code>：</p>
+      <div class="docs-table-wrap">
+        <table class="docs-table">
+          <thead><tr><th>code</th><th>含义</th><th>建议</th></tr></thead>
+          <tbody>
+            <tr><td><code>bad_request</code></td><td>请求参数不合法</td><td>检查请求体字段</td></tr>
+            <tr><td><code>bad_credentials</code></td><td>账号或密码不对</td><td>提示用户核对凭据</td></tr>
+            <tr><td><code>unauthorized</code></td><td>缺令牌 / 令牌无效或已吊销</td><td>跳登录页重新登录</td></tr>
+            <tr><td><code>forbidden</code></td><td>权限不足</td><td>检查服务密钥或权限</td></tr>
+            <tr><td><code>not_found</code></td><td>资源不存在</td><td>核对对象名 / 路径</td></tr>
+            <tr><td><code>revision_conflict</code></td><td>乐观锁冲突</td><td>拉最新、合并、重推</td></tr>
+            <tr><td><code>quota_exceeded</code></td><td>超出配额</td><td>清理对象或扩容</td></tr>
+            <tr><td><code>payload_too_large</code></td><td>请求体或对象超上限</td><td>拆分或压缩</td></tr>
+            <tr><td><code>rate_limited</code></td><td>触发限流</td><td>稍后重试</td></tr>
+            <tr><td><code>token_expired</code></td><td>令牌过期，该续期</td><td>自动用 refresh 续期</td></tr>
+            <tr><td><code>name_invalid</code></td><td>对象名不合法</td><td>检查对象名规则</td></tr>
+            <tr><td><code>server_error</code></td><td>服务端内部错误</td><td>稍后重试或联系支持</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout--info"><span class="callout__icon" aria-hidden="true">ℹ️</span><p>两个 401 要分清：<code>bad_credentials</code> 是「你输错了」，<code>unauthorized</code> 是「你的登录失效了」。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="faq">常见问题</h2>
+      <div class="docs-faq__item"><p class="docs-faq__q">问：忘记口令怎么办？</p><p>答：用注册时保存的恢复码解包 DEK 并重设口令。恢复码只展示一次，请妥善保存。</p></div>
+      <div class="docs-faq__item"><p class="docs-faq__q">问：换密码云端数据会丢吗？</p><p>答：不会。换密码只替换「包裹 DEK 的钥匙」，云端密文一个字节都不动。</p></div>
+      <div class="docs-faq__item"><p class="docs-faq__q">问：服务器能看到我的数据吗？</p><p>答：服务端只保存密文信封，你的口令与密钥不上传，因此它拿到的内容解不开。真正会离开本机的是 AI 请求：心履的 AI 回复由第三方服务商生成，发给它的内容会离开本机；Pinghe Launcher 只有在 API 模式下才会把内容发给服务商，本地模式不出本机；邮件内容不交给 AI。详见「隐私与数据安全」。</p></div>
+      <div class="docs-faq__item"><p class="docs-faq__q">问：多台设备同时改会不会冲突？</p><p>答：靠乐观锁 + 三方合并，冲突保留并报告，不会静默覆盖。</p></div>
+      <div class="docs-faq__item"><p class="docs-faq__q">问：本机上的数据也加密吗？</p><p>答：不是全部。云同步的对象是端到端加密的；但 Pinghe Launcher 与 Pinghe Launcher Lite 共享的账号文件当前以明文保存在本机共享数据目录（为了两个应用能互相读取），凭据库在系统支持时用系统密钥加密。</p></div>
+      <div class="docs-faq__item"><p class="docs-faq__q">问：心履账号和 phix 账号什么关系？</p><p>答：统一账号。心履老账号零影响，新账号走「认证委托」自动关联。</p></div>
+    </section>
+
+    <section class="docs-section">
+      <h2 id="privacy">隐私与数据安全</h2>
+      <p>这里把「能做什么」和「做不到什么」分开写清楚，避免把端到端加密理解过头：</p>
+      <ul>
+        <li><strong>服务端只保存密文</strong>：密文信封、令牌、密钥包裹；你的口令与密钥不上传，服务端拿到的内容它解不开。请求体（含登录口令）不写入服务端日志。</li>
+        <li><strong>本机侧不是全加密</strong>：Pinghe Launcher 与 Pinghe Launcher Lite 共享的账号文件当前以<strong>明文</strong>保存在本机共享数据目录（为的是两个应用能互相读取，当前版本未启用加密）；凭据库在系统支持时使用系统密钥加密。请不要把本机数据目录分享出去或提交到公开仓库。</li>
+        <li><strong>AI 的内容会出本机</strong>：心履的 AI 回复由第三方服务商生成，发给它的内容会离开本机；Pinghe Launcher 的 AI 有「本地 / API」两种模式，只有本地模式不出本机。<strong>邮件内容不交给 AI</strong>。</li>
+        <li><strong>同步哪些对象、能不能关</strong>：<code>schedule</code>（日程）、<code>mood</code>（心情）、<code>timetable</code>（课表）、<code>school</code>（学校快照）、<code>profile</code>（头像昵称）、<code>settings.accounts</code>（凭据）、<code>settings.lessons</code>（选课）、<code>settings.ui</code>（界面偏好）、<code>settings.ai</code>（AI 配置）、<code>agent:&lt;会话id&gt;</code>（AI 会话）。客户端可以关闭同步，也可以删除云端对象。</li>
+        <li><strong>数据存在哪</strong>：本地 + 云端密文两份。本地是唯一真相源，云同步是「加在旁边」的一层。</li>
+        <li><strong>本地不上云的</strong>：本地缓存、日志、备份、浏览器登录态、个人令牌。</li>
+        <li><strong>口令与恢复码都丢失时</strong>：这是端到端加密的设计后果——注册时的恢复码和登录口令都丢失后，云端数据无法解开，我们也没有后门可以帮你恢复。请把恢复码单独保管好。</li>
+      </ul>
+      <div class="callout callout--safe"><span class="callout__icon" aria-hidden="true">🛡️</span><p>客户端支持本地保存与云端同步；重要内容建议定期备份。服务端即使数据库泄露或被入侵，没有口令与密钥也解不开这些密文对象。</p></div>
+      <div class="callout callout--note"><span class="callout__icon" aria-hidden="true">⚠️</span><p>「端到端加密」不等于「一定丢不了」：设备损坏、误删、口令与恢复码同时丢失，都可能让数据取不回来。重要内容请另外留一份备份。</p></div>
+    </section>
+
+    <nav class="docs-pager" id="docs-pager" aria-label="章节翻页">
+      <a class="docs-pager__link" id="pagination-prev" href="#overview">
+        <span class="docs-pager__label">上一节</span>
+        <span class="docs-pager__title" id="pagination-prev-title">概览</span>
+      </a>
+      <span class="docs-pager__progress" id="pagination-progress">第 1 / 24 节</span>
+      <a class="docs-pager__link docs-pager__link--next" id="pagination-next" href="#platforms">
+        <span class="docs-pager__label">下一节</span>
+        <span class="docs-pager__title" id="pagination-next-title">支持的平台</span>
+      </a>
+    </nav>
+  </div>
+
+  <nav class="docs-toc" id="docs-toc" aria-label="本页目录">
+    <p class="docs-toc__title">本页目录</p>
+    <a class="docs-toc__link" href="#overview">概览</a>
+    <a class="docs-toc__link" href="#platforms">支持的平台</a>
+    <a class="docs-toc__link" href="#quickstart">五分钟上手</a>
+    <a class="docs-toc__link" href="#unified-account">统一账号</a>
+    <a class="docs-toc__link" href="#authhash">AuthHash 与口令派生</a>
+    <a class="docs-toc__link" href="#legacy-migration">旧账号迁移</a>
+    <a class="docs-toc__link" href="#change-password">修改密码</a>
+    <a class="docs-toc__link" href="#key-hierarchy">三层密钥</a>
+    <a class="docs-toc__link" href="#envelope">对象加密信封</a>
+    <a class="docs-toc__link" href="#transport-encryption">传输加密</a>
+    <a class="docs-toc__link" href="#pinning-replay">公钥固定与抗重放</a>
+    <a class="docs-toc__link" href="#access-token">访问令牌</a>
+    <a class="docs-toc__link" href="#refresh-rotation">Refresh 轮换</a>
+    <a class="docs-toc__link" href="#grace-period">宽限期</a>
+    <a class="docs-toc__link" href="#jwks-verification">公钥验签</a>
+    <a class="docs-toc__link" href="#sync-objects">同步对象一览</a>
+    <a class="docs-toc__link" href="#version-conflict">版本与冲突</a>
+    <a class="docs-toc__link" href="#quota-limits">配额与限流</a>
+    <a class="docs-toc__link" href="#platform-xinlv">心履</a>
+    <a class="docs-toc__link" href="#platform-phl">Pinghe Launcher</a>
+    <a class="docs-toc__link" href="#platform-phll">Pinghe Launcher Lite</a>
+    <a class="docs-toc__link" href="#error-codes">错误码</a>
+    <a class="docs-toc__link" href="#faq">常见问题</a>
+    <a class="docs-toc__link" href="#privacy">隐私与数据安全</a>
+  </nav>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__col"><img class="site-footer__logo" src="/assets/logo-transparent.png" alt="phix"><p class="site-footer__blurb">{{cms:footer.blurb|上海民办平和学校 · 维修社 · 用代码装点校园生活}}</p></div>
+    <div class="site-footer__contact"><p class="site-footer__heading">联系我们</p><p>📧 {{cms:footer.contact_email|norine.liu@icloud.com/huaziqian40@gmail.com}}</p><p>📞 {{cms:footer.contact_phone|18901712280/13675821816}}</p><p>💬 微信：{{cms:footer.contact_wechat|Norine2010/int_32_2147483647}}</p><p>📺 <a href="{{cms:footer.contact_bilibili|https://space.bilibili.com/1121702307}}" target="_blank" rel="noopener">B站主页</a></p></div>
+    <nav class="site-footer__links" aria-label="页脚导航"><a href="/about/">关于我们</a><a href="/products/xinlv/">产品</a><a href="/download/">下载</a><a href="/log/">PHIX 日志</a></nav>
+  </div>
+  <div class="site-footer__copy">{{cms:footer.copyright|© 2026 phix}}</div>
+</footer>
+
+<script src="/static/site.js"></script>
+<script>
+/* 文档页 scroll-spy：左侧导航 + 右侧「本页目录」TOC 双联动高亮，
+   平滑锚点跳转 + 底部「上一节 / 下一节」翻页（零依赖）。 */
+(function () {
+  var nav = document.getElementById('docs-nav');
+  if (!nav) return;
+  var links = Array.prototype.slice.call(nav.querySelectorAll('a[href^="#"]'));
+  if (!links.length) return;
+  var toc = document.getElementById('docs-toc');
+  var tocLinks = toc ? Array.prototype.slice.call(toc.querySelectorAll('a[href^="#"]')) : [];
+  var pagination = document.getElementById('docs-pager');
+  var paginationLinks = pagination ? Array.prototype.slice.call(pagination.querySelectorAll('a.docs-pager__link')) : [];
+  var sections = [];
+  var map = {};
+  links.forEach(function (a) {
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    map[id] = a;
+    if (el) sections.push({ id: id, el: el, title: a.textContent.replace(/\s+/g, ' ').trim() });
+  });
+  if (!sections.length) return;
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var HEADER_OFFSET = 96;   /* 略大于 scroll-margin-top(80px)，避免小节顶恰好停在阈值线上的浮点抖动 */
+
+  function setActive(id, expand) {
+    var idx = -1;
+    var activeGrp = null;
+    links.forEach(function (a, i) {
+      var on = map[id] === a;
+      a.classList.toggle('is-active', on);
+      if (on) {
+        a.setAttribute('aria-current', 'location');
+        idx = i;
+        activeGrp = a.closest ? a.closest('details.docs-nav__group') : null;
+        if (activeGrp && expand) activeGrp.open = true;   /* 仅深链/主动滚动/点锚点时自动展开 */
+      } else {
+        a.removeAttribute('aria-current');
+      }
+    });
+    /* 高亮当前分组 summary（分组收起时也可见），并清除其它分组 summary 的高亮 */
+    nav.querySelectorAll('summary.docs-nav__group-title').forEach(function (s) {
+      s.classList.toggle('is-active', s.parentElement === activeGrp);
+    });
+    tocLinks.forEach(function (a) {
+      a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
+    });
+    updatePagination(idx);
+  }
+
+  function updatePagination(idx) {
+    var prev = document.getElementById('pagination-prev');
+    var next = document.getElementById('pagination-next');
+    var prevTitle = document.getElementById('pagination-prev-title');
+    var nextTitle = document.getElementById('pagination-next-title');
+    var progress = document.getElementById('pagination-progress');
+    if (progress) progress.textContent = '第 ' + (idx + 1) + ' / ' + sections.length + ' 节';
+    if (idx > 0 && prev) {
+      var p = sections[idx - 1];
+      prev.setAttribute('href', '#' + p.id);
+      prev.classList.remove('is-disabled');
+      if (prevTitle) prevTitle.textContent = p.title;
+    } else if (prev) {
+      prev.classList.add('is-disabled');
+    }
+    if (idx >= 0 && idx < sections.length - 1 && next) {
+      var n = sections[idx + 1];
+      next.setAttribute('href', '#' + n.id);
+      next.classList.remove('is-disabled');
+      if (nextTitle) nextTitle.textContent = n.title;
+    } else if (next) {
+      next.classList.add('is-disabled');
+    }
+  }
+
+  function goTo(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (reduced) el.scrollIntoView();
+    else el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (history.replaceState) history.replaceState(null, '', '#' + id);
+    setActive(id, true);   /* 点击锚点 = 主动跳转 → 展开所属分组 */
+  }
+
+  function bindClicks(list) {
+    list.forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (a.classList.contains('is-disabled')) return;
+        goTo(a.getAttribute('href').slice(1));
+      });
+    });
+  }
+
+  function currentSection() {
+    var cur = sections[0].id;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].el.getBoundingClientRect().top - HEADER_OFFSET <= 0) {
+        cur = sections[i].id;
+      }
+    }
+    return cur;
+  }
+
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(function () {
+      ticking = false;
+      setActive(currentSection(), true);   /* 主动滚动换组 → 自动展开新分组（旧分组保持，不来回开合） */
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  bindClicks(links);
+  bindClicks(tocLinks);
+  bindClicks(paginationLinks);
+
+  /* 首次加载：默认全部收起（details[open] 必须为 0）。
+     - URL 带 hash（深链）→ 展开该小节所属分组 + 子项 active；
+     - 无 hash → 只高亮当前可视小节所属分组的标题（summary .is-active），不展开任何分组。 */
+  (function initActive() {
+    var hashId = null;
+    if (location.hash && location.hash.length > 1) {
+      var hid = location.hash.slice(1);
+      if (map[hid] && document.getElementById(hid)) hashId = hid;
+    }
+    if (hashId) setActive(hashId, true);
+    else setActive(currentSection(), false);
+  })();
+})();
+</script>
+<script>
+/* 手机版补充（2026-09-13）：布局全部在 static/mobile-docs.css，这里只补两件
+   CSS 做不到的事——① 左栏目录抽屉需要一个"可点的按钮"（纯 CSS 造不出可点元素，
+      自己 18 行）；② 加密链路示意图要能点开放大（运行期包一层 <a target="_blank">，
+      不改源 HTML 结构）。
+   桌面版在这里直接 return，DOM 与桌面版完全一致。 */
+(function () {
+  var h = document.documentElement, nav = document.getElementById('docs-nav');
+  var img = document.querySelector('.docs-figure img');
+  if (!h.classList.contains('ua-mobile')) return;
+  if (nav) {
+    var btn = document.createElement('button');
+    btn.id = 'docs-toc-btn'; btn.className = 'docs-tocbtn'; btn.type = 'button';
+    btn.textContent = '目录'; btn.setAttribute('aria-controls', 'docs-nav');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.insertBefore(btn, document.body.firstChild);
+    var set = function (on) {
+      h.classList.toggle('docs-toc-open', on);
+      btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+    };
+    btn.addEventListener('click', function () { set(!h.classList.contains('docs-toc-open')); });
+    nav.addEventListener('click', function (e) { if (e.target.closest('a')) set(false); });
+    document.addEventListener('click', function (e) {
+      if (h.classList.contains('docs-toc-open') && !nav.contains(e.target) && !btn.contains(e.target)) set(false);
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+  }
+  if (img) {
+    var a = document.createElement('a');
+    a.className = 'docs-figure__zoom'; a.target = '_blank'; a.rel = 'noopener';
+    a.href = img.getAttribute('src');
+    img.parentNode.insertBefore(a, img); a.appendChild(img);
+  }
+})();
+</script>
+</body>
+</html>

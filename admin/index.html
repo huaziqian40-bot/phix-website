@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · PHIX 维修社 · 上海民办平和学校</title>
+<link rel="stylesheet" href="/static/site.css">
+<meta name="mobile-css" content="/static/mobile-products.css">
+<script src="/static/ua-switch.js"></script>
+<style>
+.admin-layout{max-width:960px;margin:0 auto;padding:32px 24px}
+.admin-header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.admin-header h1{margin:0;font-size:1.5rem;font-weight:800;color:var(--ink)}
+.admin-header .user-badge{font-size:.875rem;color:var(--ink-2);background:var(--phix-mist);padding:4px 12px;border-radius:999px;border:1px solid var(--phix-lilac)}
+.admin-nav{display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap}
+.admin-nav a{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--radius-btn);border:1px solid var(--phix-lilac);color:var(--ink);text-decoration:none;font-weight:600;font-size:.9375rem;transition:all .18s ease}
+.admin-nav a:hover,.admin-nav a.active{background:var(--phix-violet);color:#fff;border-color:var(--phix-violet)}
+.admin-card{background:var(--paper);border:1px solid var(--phix-lilac);border-radius:var(--radius-card);padding:28px;box-shadow:var(--shadow-card)}
+.admin-card h2{margin:0 0 16px;font-size:1.125rem;font-weight:700;color:var(--ink)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.stat-item{padding:20px;background:var(--phix-mist);border-radius:var(--radius-btn);text-align:center}
+.stat-item .num{font-size:2rem;font-weight:800;color:var(--phix-violet)}
+.stat-item .label{font-size:.8125rem;color:var(--ink-2);margin-top:4px}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="/" aria-label="phix 首页"><img src="/assets/logo-transparent.png" alt="phix"></a>
+    <nav class="nav" aria-label="主导航"><ul class="nav__list">
+      <li><a class="nav__link" href="/about/">关于我们</a></li>
+      <li><a class="nav__link" href="/docs/">文档</a></li>
+      <li><a class="nav__link" href="/log/">PHIX 日志</a></li>
+    </ul></nav>
+    <div class="site-header__actions">
+      <a class="btn btn--sm btn--primary" href="/account/">个人中心</a>
+    </div>
+  </div>
+</header>
+
+<div class="admin-layout">
+  <div class="admin-header">
+    <h1>🛠 管理后台</h1>
+    <span class="user-badge">{{admin_username}}</span>
+  </div>
+  <div class="admin-nav">
+    <a href="/admin/" class="active">概览</a>
+    <a href="/admin/users/">用户管理</a>
+    <a href="/admin/content/">页面文字</a>
+    <a href="/admin/feedback/">反馈收件箱 <span id="fb-badge" style="display:none;background:var(--phix-rose);color:#fff;font-size:.75rem;padding:1px 6px;border-radius:999px;margin-left:4px"></span></a>
+  </div>
+  <div class="admin-card">
+    <h2>快速入口</h2>
+    <div class="stat-grid">
+      <a href="/admin/users/" class="stat-item" style="text-decoration:none">
+        <div class="num">👥</div>
+        <div class="label">用户管理</div>
+      </a>
+      <a href="/admin/content/" class="stat-item" style="text-decoration:none">
+        <div class="num">✏️</div>
+        <div class="label">页面文字编辑</div>
+      </a>
+      <a href="/admin/feedback/" class="stat-item" style="text-decoration:none">
+        <div class="num">📬 <span id="fb-count" style="font-size:1rem"></span></div>
+        <div class="label">反馈收件箱</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__col">
+      <img class="site-footer__logo" src="/assets/logo-transparent.png" alt="phix">
+      <p class="site-footer__blurb">{{cms:footer.blurb|上海民办平和学校 · 维修社 · 用代码装点校园生活}}</p>
+    </div>
+    <nav class="site-footer__links"><a href="/about/">关于我们</a><a href="/products/xinlv/">产品</a><a href="/download/">下载</a><a href="/log/">PHIX 日志</a></nav>
+  </div>
+  <div class="site-footer__copy">{{cms:footer.copyright|© 2026 phix}}</div>
+</footer>
+<script src="/static/site.js"></script>
+<script>
+fetch('/admin/api/feedback').then(r=>r.json()).then(d=>{
+  if(d.ok && d.unhandled>0){
+    const badge=document.getElementById('fb-badge');
+    if(badge){badge.textContent=d.unhandled;badge.style.display='inline';}
+    const cnt=document.getElementById('fb-count');
+    if(cnt)cnt.textContent=d.unhandled+' 未处理';
+  }
+}).catch(()=>{});
+</script>
+</body>
+</html>

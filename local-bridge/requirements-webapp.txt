@@ -1,0 +1,17 @@
+# phix 官网「服务端平台抓取层」新增依赖
+#
+# 站点本体（server.py / core_e2e.py）仍然只用标准库 + cryptography：
+# 下面这些是 /app/data/（服务端代抓 edupage / managebac / 邮箱）用的，
+# **全部在函数内部延迟 import** —— 装不上时对应平台降级为
+# “服务端缺少依赖，暂时无法抓取”，站点照常启动。
+#
+# 本机站点 venv：D:\phix\server\.venv
+# 生产站点 venv：/home/phix/phix-server/.venv
+#
+#   python -m pip install -r requirements-webapp.txt
+
+beautifulsoup4>=4.12      # ManageBac HTML 解析（webapp_mb_parse.py）
+edupage-api>=0.12.5       # EduPage 课表（第三方非官方库，调用已包 try/except）
+requests>=2.31            # ManageBac 纯 HTTP 登录/抓取（venv 里已有）
+
+# 邮箱走标准库 imaplib（imap.qiye.163.com:993 SSL），不需要额外依赖。

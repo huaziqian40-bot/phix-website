@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PHIX 日志 · PHIX 维修社 · 上海民办平和学校</title>
+<link rel="stylesheet" href="/static/site.css">
+<link rel="stylesheet" href="/static/log.css">
+<meta name="mobile-css" content="/static/mobile-products.css">
+<script src="/static/ua-switch.js"></script>
+</head>
+<body>
+
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="/" aria-label="phix 首页"><img src="/assets/logo-transparent.png" alt="phix"></a>
+    <nav class="nav" aria-label="主导航">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="/about/">关于我们</a></li>
+        <li class="nav__item">
+          <a class="nav__link nav__link--toggle" href="#products" aria-haspopup="true" aria-expanded="false">产品 <svg class="nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></a>
+          <div class="dropdown">
+            <p class="dropdown__group">软件</p>
+            <a class="dropdown__item" href="/products/xinlv/"><span>心履<small>心情记录</small></span></a>
+            <a class="dropdown__item" href="/products/phl/"><span>Pinghe Launcher<small>效率中枢</small></span></a>
+            <p class="dropdown__group">硬件</p>
+            <span class="dropdown__item dropdown__item--disabled"><span>敬请期待</span></span>
+          </div>
+        </li>
+        <li><a class="nav__link" href="/docs/">文档</a></li>
+        <li><a class="nav__link" href="/log/">PHIX 日志</a></li>
+      </ul>
+    </nav>
+    <div class="site-header__actions">
+      <a class="nav__link" href="/support/">服务与支持</a>
+      <a class="nav__link" href="/download/">下载</a>
+      <a class="btn btn--sm btn--primary" href="/login/">登录 / 注册</a>
+    </div>
+  </div>
+</header>
+
+<main class="log-main">
+  <section class="log-hero">
+    <div class="log-hero__inner">
+      <p class="log-hero__kicker">PHIX 维修社</p>
+      <h1 class="log-hero__title">PHIX 日志</h1>
+      <p class="log-hero__subtitle">记录维修社为同学修好的东西——从更换屏幕到重装系统，每一台修好的设备都值得被记住。</p>
+    </div>
+  </section>
+
+  <div class="log-shell">
+    <section class="log-intro">
+      <h2>我们修过什么？</h2>
+      <p>这里是维修社的公开工作日志。你可以翻看我们为同学修好的每一件设备，看看它「维修前（Before）」与「维修后（After）」的样子。页面无需登录即可浏览；登录后可以新增一条记录，管理员（staff）还可以删除记录。</p>
+    </section>
+
+    <section class="log-section">
+      <div class="log-section__head">
+        <h2>维修记录</h2>
+        <span class="log-count" id="log-count">…</span>
+      </div>
+      <div class="log-table-wrap">
+        <table class="log-table">
+          <thead>
+            <tr id="log-head-row">
+              <th>日期</th>
+              <th>受理人</th>
+              <th>受理物</th>
+              <th>Before</th>
+              <th>After</th>
+            </tr>
+          </thead>
+          <tbody id="log-tbody"></tbody>
+        </table>
+        <p class="log-empty" id="log-empty" hidden>还没有维修记录。等你来写下第一笔 📝</p>
+      </div>
+    </section>
+
+    <section class="log-section" id="log-form-section">
+      <h2>新增记录</h2>
+      <div id="log-form-auth">
+        <form id="log-form" class="log-form" novalidate>
+          <div class="log-form__grid">
+            <div class="field">
+              <label for="log-date">日期</label>
+              <input id="log-date" type="date" required>
+            </div>
+            <div class="field">
+              <label for="log-handler">受理人</label>
+              <input id="log-handler" type="text" maxlength="60" placeholder="填写你的名字" required>
+            </div>
+            <div class="field log-form__item">
+              <label for="log-item">受理物</label>
+              <input id="log-item" type="text" maxlength="60" placeholder="例如：同学的笔记本电脑（换了屏幕）" required>
+            </div>
+          </div>
+          <div class="log-form__imgs">
+            <div class="field">
+              <label for="log-before">Before（维修前，选填）</label>
+              <input id="log-before" type="file" accept="image/*">
+              <div class="log-preview" id="log-before-preview"></div>
+            </div>
+            <div class="field">
+              <label for="log-after">After（维修后，选填）</label>
+              <input id="log-after" type="file" accept="image/*">
+              <div class="log-preview" id="log-after-preview"></div>
+            </div>
+          </div>
+          <div class="log-form__foot">
+            <button type="submit" class="btn btn--primary">提交记录</button>
+            <span class="log-msg" id="log-msg" role="status"></span>
+          </div>
+        </form>
+      </div>
+      <div id="log-login-cta" hidden>
+        <p>登录后即可新增记录。</p>
+        <a class="btn btn--primary" href="/login/?next=/log/">去登录</a>
+      </div>
+    </section>
+
+    <section class="log-band" aria-hidden="true"></section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__col"><img class="site-footer__logo" src="/assets/logo-transparent.png" alt="phix"><p class="site-footer__blurb">{{cms:footer.blurb|上海民办平和学校 · 维修社 · 用代码装点校园生活}}</p></div>
+    <div class="site-footer__contact"><p class="site-footer__heading">联系我们</p><p>📧 {{cms:footer.contact_email|norine.liu@icloud.com/huaziqian40@gmail.com}}</p><p>📞 {{cms:footer.contact_phone|18901712280/13675821816}}</p><p>💬 微信：{{cms:footer.contact_wechat|Norine2010/int_32_2147483647}}</p><p>📺 <a href="{{cms:footer.contact_bilibili|https://space.bilibili.com/1121702307}}" target="_blank" rel="noopener">B站主页</a></p></div>
+    <nav class="site-footer__links" aria-label="页脚导航"><a href="/about/">关于我们</a><a href="/products/xinlv/">产品</a><a href="/download/">下载</a><a href="/log/">PHIX 日志</a></nav>
+  </div>
+  <div class="site-footer__copy">{{cms:footer.copyright|© 2026 phix}}</div>
+</footer>
+
+<dialog class="log-dialog" id="log-dialog">
+  <img id="log-dialog-img" src="" alt="大图预览">
+  <button type="button" class="log-dialog__close" id="log-dialog-close" aria-label="关闭">✕</button>
+</dialog>
+
+<script src="/static/site.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var tbody = document.getElementById('log-tbody');
+  var headRow = document.getElementById('log-head-row');
+  var emptyEl = document.getElementById('log-empty');
+  var countEl = document.getElementById('log-count');
+  var form = document.getElementById('log-form');
+  var formAuth = document.getElementById('log-form-auth');
+  var loginCta = document.getElementById('log-login-cta');
+  var msgEl = document.getElementById('log-msg');
+  var dateInput = document.getElementById('log-date');
+  var handlerInput = document.getElementById('log-handler');
+  var itemInput = document.getElementById('log-item');
+  var beforeInput = document.getElementById('log-before');
+  var afterInput = document.getElementById('log-after');
+  var beforePreview = document.getElementById('log-before-preview');
+  var afterPreview = document.getElementById('log-after-preview');
+  var dialog = document.getElementById('log-dialog');
+  var dialogImg = document.getElementById('log-dialog-img');
+
+  var currentUser = null;
+  var state = { before: null, after: null };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function todayLocal() {
+    var d = new Date();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + m + '-' + day;
+  }
+
+  function setMsg(text, kind) {
+    msgEl.textContent = text || '';
+    msgEl.className = 'log-msg' + (kind ? ' log-msg--' + kind : '');
+  }
+
+  function compressImage(file) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var MAX = 1600;
+        var w = img.naturalWidth || img.width || 1;
+        var h = img.naturalHeight || img.height || 1;
+        var scale = Math.min(1, MAX / Math.max(w, h));
+        w = Math.max(1, Math.round(w * scale));
+        h = Math.max(1, Math.round(h * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        reject(new Error('图片读取失败'));
+      };
+      img.src = url;
+    });
+  }
+
+  function bindFile(input, previewEl, key) {
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) { state[key] = null; previewEl.innerHTML = ''; return; }
+      previewEl.textContent = '压缩中…';
+      compressImage(file).then(function (dataUrl) {
+        state[key] = dataUrl;
+        previewEl.innerHTML = '<img class="log-preview__img" src="' + esc(dataUrl) + '" alt="">';
+      }).catch(function () {
+        state[key] = null;
+        previewEl.textContent = '图片读取失败';
+      });
+    });
+  }
+
+  function thumbCell(url, label) {
+    if (!url) return '<span class="log-na">—</span>';
+    return '<button type="button" class="log-thumb-btn" data-full="' + esc(url) + '" aria-label="查看大图">' +
+      '<img class="log-thumb" src="' + esc(url) + '" alt="' + esc(label) + '" loading="lazy"></button>';
+  }
+
+  function render(logs, isStaff) {
+    // 操作列：仅 staff 显示
+    if (isStaff) {
+      if (!document.getElementById('log-actions-th')) {
+        var th = document.createElement('th');
+        th.id = 'log-actions-th';
+        th.className = 'log-col-actions';
+        th.textContent = '操作';
+        headRow.appendChild(th);
+      }
+    } else {
+      var t = document.getElementById('log-actions-th');
+      if (t) t.remove();
+    }
+
+    tbody.innerHTML = '';
+    (logs || []).forEach(function (log) {
+      var tr = document.createElement('tr');
+      var html = '<td data-label="日期">' + esc(log.date) + '</td>' +
+        '<td data-label="受理人">' + esc(log.handler) + '</td>' +
+        '<td data-label="受理物">' + esc(log.item) + '</td>' +
+        '<td data-label="Before">' + thumbCell(log.before, '维修前') + '</td>' +
+        '<td data-label="After">' + thumbCell(log.after, '维修后') + '</td>';
+      if (isStaff) {
+        html += '<td data-label="操作" class="log-col-actions"><button type="button" class="log-del" data-id="' + esc(log.id) + '">删除</button></td>';
+      }
+      tr.innerHTML = html;
+      tbody.appendChild(tr);
+    });
+
+    var n = (logs || []).length;
+    countEl.textContent = n + ' 条记录';
+    emptyEl.hidden = n !== 0;
+  }
+
+  function loadLogs() {
+    return fetch('/logs/').then(function (r) { return r.json(); }).then(function (d) {
+      render(d.logs || [], !!(currentUser && currentUser.is_staff));
+    }).catch(function () {
+      render([], !!(currentUser && currentUser.is_staff));
+    });
+  }
+
+  function delLog(id) {
+    if (!window.confirm('确定删除这条记录吗？此操作不可撤销。')) return;
+    fetch('/logs/' + encodeURIComponent(id), { method: 'DELETE' }).then(function (r) {
+      return r.json().catch(function () { return {}; });
+    }).then(function (d) {
+      if (d.ok) { loadLogs(); }
+      else { window.alert(d.error && d.error.message ? d.error.message : '删除失败'); }
+    }).catch(function () { window.alert('网络错误，请稍后重试'); });
+  }
+
+  // 缩略图 / 删除（事件委托）
+  tbody.addEventListener('click', function (e) {
+    var tb = e.target.closest ? e.target.closest('.log-thumb-btn') : null;
+    if (tb) { dialogImg.src = tb.getAttribute('data-full'); dialog.showModal(); return; }
+    var del = e.target.closest ? e.target.closest('.log-del') : null;
+    if (del) delLog(del.getAttribute('data-id'));
+  });
+
+  // 大图对话框：点遮罩关闭（Esc 由原生 <dialog> 处理）
+  dialog.addEventListener('click', function (e) { if (e.target === dialog) dialog.close(); });
+  var closeBtn = document.getElementById('log-dialog-close');
+  if (closeBtn) closeBtn.addEventListener('click', function () { dialog.close(); });
+
+  // 表单：默认日期 + 默认受理人
+  dateInput.value = todayLocal();
+  bindFile(beforeInput, beforePreview, 'before');
+  bindFile(afterInput, afterPreview, 'after');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var date = dateInput.value.trim();
+    var handler = handlerInput.value.trim();
+    var item = itemInput.value.trim();
+    if (!date) { setMsg('请选择日期', 'err'); return; }
+    if (!handler) { setMsg('请填写受理人', 'err'); return; }
+    if (!item) { setMsg('请填写受理物', 'err'); return; }
+    var body = { date: date, handler: handler, item: item, before: state.before || null, after: state.after || null };
+    setMsg('提交中…', '');
+    fetch('/logs/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (d) {
+      if (d.ok) {
+        setMsg('已新增记录 ✓', 'ok');
+        form.reset();
+        state.before = null; state.after = null;
+        beforePreview.innerHTML = ''; afterPreview.innerHTML = '';
+        dateInput.value = todayLocal();
+        if (currentUser) handlerInput.value = currentUser.username;
+        loadLogs();
+      } else {
+        setMsg((d.error && d.error.message) || '提交失败', 'err');
+      }
+    }).catch(function () { setMsg('网络错误，请稍后重试', 'err'); });
+  });
+
+  // 登录态
+  if (typeof checkAuth === 'function') {
+    checkAuth().then(function (u) {
+      currentUser = u;
+      if (u) {
+        formAuth.hidden = false;
+        loginCta.hidden = true;
+        if (!handlerInput.value) handlerInput.value = u.username || '';
+      } else {
+        formAuth.hidden = true;
+        loginCta.hidden = false;
+      }
+      return loadLogs();
+    }).catch(function () {
+      formAuth.hidden = true;
+      loginCta.hidden = false;
+      loadLogs();
+    });
+  } else {
+    formAuth.hidden = true;
+    loginCta.hidden = false;
+    loadLogs();
+  }
+})();
+</script>
+</body>
+</html>

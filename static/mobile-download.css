@@ -1,0 +1,306 @@
+/* ============================================================================
+   phix 手机版 · 页面层第二组 B：下载页 /download/
+   ----------------------------------------------------------------------------
+   只由 static/ua-switch.js 在手机 UA（或 ?mobile=1）时注入（页面里一行
+   <meta name="mobile-css" content="/static/mobile-download.css">），桌面版永不加载。
+   基础层在 static/mobile.css（固定汉堡顶栏 56px / 抽屉 / 排版 / 按钮 / 表格容器），
+   本文件只写**下载页自己的**规则，一律以 html.ua-mobile[data-ua-page="download"]
+   开头，不改 mobile.css / site.css / deco-pages.css 里已有的选择器。
+
+   手机上要解决的四件事：
+     0) hero 与分区留白收窄，正文 16px/1.75
+     1) 8 张安装包卡片单列；卡片里的规格（文件/版本/日期/平台·架构/安装方式/大小）
+        从「一行挤成一坨」改成两列小字网格：标签左、值右
+     2) 两张内容表（安装版 vs 免安装版、系统要求）→ 每条一卡
+     3) SHA-256 表（8 行 + 复制按钮）→ 文件名 + 短哈希（前 12 位）+ 复制按钮
+     4) 「怎么安装」4 步、「卸载与数据」说明、FAQ（含未签名/报错三段引导）卡片化
+   ============================================================================ */
+
+/* ---- 0. hero 与分区 ------------------------------------------------------ */
+html.ua-mobile[data-ua-page="download"] .deco-hero__inner { padding: 26px 18px 30px; }
+html.ua-mobile[data-ua-page="download"] .deco-hero__title { font-size: 1.6rem; }
+html.ua-mobile[data-ua-page="download"] .deco-hero__subtitle,
+html.ua-mobile[data-ua-page="download"] .deco-hero__note { font-size: .9375rem; line-height: 1.72; }
+html.ua-mobile[data-ua-page="download"] .deco-section {
+  padding-top: 34px;
+  padding-bottom: 34px;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+html.ua-mobile[data-ua-page="download"] .deco-dl-cats { padding-top: 16px; }
+html.ua-mobile[data-ua-page="download"] .deco-section__title { font-size: 1.3rem; }
+html.ua-mobile[data-ua-page="download"] .deco-section__lead {
+  font-size: .9375rem;
+  line-height: 1.75;
+  margin-bottom: 20px;
+}
+html.ua-mobile[data-ua-page="download"] .deco-table__note { font-size: .8125rem; line-height: 1.75; }
+
+/* ---- 1. 分类折叠头 + 8 张卡片单列 + 规格两列小字网格 --------------------- */
+html.ua-mobile[data-ua-page="download"] .dl-cat { margin-top: 18px; border-radius: 14px; }
+html.ua-mobile[data-ua-page="download"] .dl-cat__head {
+  min-height: 56px;
+  padding: 14px 16px;
+  gap: 10px;
+}
+html.ua-mobile[data-ua-page="download"] .dl-cat__title { font-size: 1.125rem; }
+html.ua-mobile[data-ua-page="download"] .dl-sub__head {
+  min-height: 48px;
+  padding: 14px 16px;
+  font-size: .9375rem;
+}
+html.ua-mobile[data-ua-page="download"] .dl-grid {
+  grid-template-columns: minmax(0, 1fr);   /* 单列：minmax(0,1fr) 防止长文件名把列撑宽 */
+  gap: 14px;
+  padding: 4px 14px 18px;
+}
+html.ua-mobile[data-ua-page="download"] .dl-card {
+  gap: 10px;
+  padding: 18px;
+  border-radius: 14px;
+}
+/* 手机上没有真正的 hover：点一下卡片就 translateY(-4px) 会像"跳一下"，去掉 */
+html.ua-mobile[data-ua-page="download"] .dl-card:hover { transform: none; box-shadow: var(--shadow-card, 0 8px 24px rgba(154, 43, 226, .12)); }
+html.ua-mobile[data-ua-page="download"] .dl-card__name { font-size: 1.0625rem; }
+html.ua-mobile[data-ua-page="download"] .dl-card__platform { font-size: .875rem; }
+html.ua-mobile[data-ua-page="download"] .dl-card__meta { font-size: .8125rem; }
+
+/* 规格表：桌面版是 flex 一行（dt 固定 5.25em + dd 挤在右边），手机上改成
+   两列小字网格——标签恒占左列、值在右列换行，长文件名/长说明不再把行挤爆。 */
+html.ua-mobile[data-ua-page="download"] .dl-card__specs {
+  gap: 0;
+  margin-bottom: 12px;
+  font-size: .8125rem;
+}
+html.ua-mobile[data-ua-page="download"] .dl-card__specs > div {
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr);
+  gap: 2px 10px;
+  align-items: start;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+}
+html.ua-mobile[data-ua-page="download"] .dl-card__specs > div:last-child { border-bottom: 0; }
+html.ua-mobile[data-ua-page="download"] .dl-card__specs dt {
+  width: auto;
+  font-size: .75rem;
+  line-height: 1.6;
+  color: var(--ink-2, #5B5670);
+}
+html.ua-mobile[data-ua-page="download"] .dl-card__specs dd { font-size: .8125rem; line-height: 1.65; }
+html.ua-mobile[data-ua-page="download"] .dl-card__specs code { font-size: .75rem; }
+html.ua-mobile[data-ua-page="download"] .dl-card__btn { align-self: stretch; margin-top: 2px; }
+
+/* ---- 2. 两张内容表 → 每条一卡 -------------------------------------------- */
+/* 做法与文档页一致：<tr> 变卡片、第一个 <td>（对比项 / 产品名）当标题、
+   其余 <td> 竖排。多列表格的"列名"在卡片布局里没有位置（HTML 不能改），
+   所以这里用 CSS 给第 2/3/4 列补 ::before 标签；两张表靠列数区分：
+   3 列的只有「安装版还是免安装版？」，4 列的是「系统要求」
+   （SHA-256 表也是 4 列，用 :not(.deco-table--hash) 排除）。
+   浏览器不支持 :has() 时这几条不生效，卡片仍会正常竖排（只是没有列名）。 */
+html.ua-mobile[data-ua-page="download"] .deco-table-wrap {
+  max-width: 100%;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  margin: 0 0 14px;
+}
+html.ua-mobile[data-ua-page="download"] .deco-table,
+html.ua-mobile[data-ua-page="download"] .deco-table thead,
+html.ua-mobile[data-ua-page="download"] .deco-table tbody,
+html.ua-mobile[data-ua-page="download"] .deco-table tr,
+html.ua-mobile[data-ua-page="download"] .deco-table th,
+html.ua-mobile[data-ua-page="download"] .deco-table td {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+html.ua-mobile[data-ua-page="download"] .deco-table thead { display: none; }
+html.ua-mobile[data-ua-page="download"] .deco-table tr {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: 14px;
+  background: var(--paper, #fff);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(154, 43, 226, .10));
+}
+html.ua-mobile[data-ua-page="download"] .deco-table td {
+  padding: 7px 0;
+  border: 0;
+  border-bottom: 1px dashed var(--phix-mist, #F5F3FF);
+  font-size: .875rem;
+  line-height: 1.7;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html.ua-mobile[data-ua-page="download"] .deco-table td:first-child {
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink, #1E1B2E);
+}
+html.ua-mobile[data-ua-page="download"] .deco-table td:last-child { border-bottom: 0; padding-bottom: 0; }
+/* 补列名（见上）：3 列表 = 安装版 vs 免安装版 */
+html.ua-mobile[data-ua-page="download"] .deco-table:not(:has(th:nth-child(4))) td:nth-child(2)::before { content: "安装版："; }
+html.ua-mobile[data-ua-page="download"] .deco-table:not(:has(th:nth-child(4))) td:nth-child(3)::before { content: "免安装版："; }
+/* 4 列表 = 系统要求 */
+html.ua-mobile[data-ua-page="download"] .deco-table:has(th:nth-child(4)):not(.deco-table--hash) td:nth-child(2)::before { content: "平台："; }
+html.ua-mobile[data-ua-page="download"] .deco-table:has(th:nth-child(4)):not(.deco-table--hash) td:nth-child(3)::before { content: "最低系统版本："; }
+html.ua-mobile[data-ua-page="download"] .deco-table:has(th:nth-child(4)):not(.deco-table--hash) td:nth-child(4)::before { content: "架构："; }
+html.ua-mobile[data-ua-page="download"] .deco-table td::before {
+  font-weight: 700;
+  color: var(--ink-2, #5B5670);
+}
+
+/* ---- 3. SHA-256 表 → 文件名 + 短哈希（前 12 位）+ 复制按钮 --------------- */
+/* 一行一卡，卡内两排：第一排文件名（整行），第二排「大小 · 前 12 位哈希 · 复制」。
+   哈希用 max-width:12ch + overflow:hidden 只露前 12 位（等宽字体，ch 就是字符宽，
+   第 13 个字符起被裁掉）；data-hash 里仍是完整的 64 位，点「复制」复制的还是全值。
+   user-select:all 保留：长按/单击仍可整段选中（浏览器复制的是完整文本）。 */
+html.ua-mobile[data-ua-page="download"] .deco-table--hash tr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 12px 14px;
+}
+html.ua-mobile[data-ua-page="download"] .deco-table--hash td { padding: 0; border: 0; }
+html.ua-mobile[data-ua-page="download"] .deco-table--hash td::before { content: none; }
+html.ua-mobile[data-ua-page="download"] .deco-table--hash td:nth-child(1) {
+  flex: 1 1 100%;
+  padding: 0 0 6px;
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+  font-size: .875rem;
+  font-weight: 700;
+  color: var(--ink, #1E1B2E);
+}
+html.ua-mobile[data-ua-page="download"] .deco-table--hash td:nth-child(2) {
+  flex: 0 0 auto;
+  font-size: .75rem;
+  color: var(--ink-2, #5B5670);
+}
+html.ua-mobile[data-ua-page="download"] .deco-table--hash td:nth-child(3) { flex: 1 1 auto; min-width: 0; }
+html.ua-mobile[data-ua-page="download"] .deco-table--hash td:nth-child(4) { flex: 0 0 auto; margin-left: auto; }
+html.ua-mobile[data-ua-page="download"] .dl-hash {
+  display: block;
+  max-width: 12ch;            /* 等宽字体：ch = 「0」的步进宽，12ch 正好 12 个字符 */
+  overflow: hidden;
+  white-space: nowrap;
+  word-break: normal;
+  /* 不能加 letter-spacing：它会把 12 个字符撑到 12ch 之外，第 12 位被裁掉半格
+     （实测 12 位 87.4px > 12ch=84px）。去掉后 12 位正好落在 12ch 内，
+     第 13 位从 84px 起、被 overflow:hidden 整格裁掉，不会出现半个字符。 */
+  letter-spacing: 0;
+  font-size: .875rem;
+  line-height: 1.5;
+  color: var(--ink, #1E1B2E);
+}
+html.ua-mobile[data-ua-page="download"] .dl-copy {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: .8125rem;
+}
+
+/* ---- 4. 安装步骤 / 卸载说明 / FAQ（未签名与报错三段引导）→ 卡片化 -------- */
+html.ua-mobile[data-ua-page="download"] .deco-steps { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+html.ua-mobile[data-ua-page="download"] .deco-step {
+  padding: 18px 18px 18px 62px;
+  border-radius: 14px;
+}
+html.ua-mobile[data-ua-page="download"] .deco-step__num {
+  left: 14px;
+  top: 18px;
+  width: 34px;
+  height: 34px;
+  font-size: .9375rem;
+}
+html.ua-mobile[data-ua-page="download"] .deco-step__title { font-size: .9375rem; }
+html.ua-mobile[data-ua-page="download"] .deco-step__text { font-size: .875rem; line-height: 1.8; }
+html.ua-mobile[data-ua-page="download"] .deco-notes {
+  padding-left: 1.15em;
+  gap: 10px;
+  font-size: .875rem;
+  line-height: 1.8;
+}
+/* FAQ：原生 details 默认收起（未签名/报错的完整处置步骤就藏在这里），
+   手机上只把标题行做够触摸目标、答案排松一点 */
+html.ua-mobile[data-ua-page="download"] .deco-faq { gap: 10px; }
+html.ua-mobile[data-ua-page="download"] .deco-faq__q {
+  min-height: 48px;
+  padding: 14px 16px;
+  font-size: .9375rem;
+  line-height: 1.5;
+}
+html.ua-mobile[data-ua-page="download"] .deco-faq__q::after { align-self: center; }
+html.ua-mobile[data-ua-page="download"] .deco-faq__a { padding: 0 16px 16px; font-size: .875rem; line-height: 1.8; }
+
+/* 页脚导航里「产品」「下载」这类两字链接在基础层只有 30px 宽（高 44px 够）：
+   页面层补 min-width:44px，让触摸目标两个方向都 ≥44px（不影响其它页面的页脚）。 */
+html.ua-mobile[data-ua-page="download"] .site-footer__links a {
+  min-width: 44px;
+  justify-content: center;
+}
+
+/* ============================================================================
+   兜底：直接打开 /download.html（带 .html 后缀）时 ua-switch.js 的 pathname
+   推导匹配不到，<html> 上没有 data-ua-page，上面的规则会落空。
+   官网内部链接用的是 /download/，这里用本页独有的 .dl-grid / .dl-cat 再兜一遍。
+   ============================================================================ */
+html.ua-mobile:not([data-ua-page]) .dl-grid { grid-template-columns: minmax(0, 1fr); padding: 4px 14px 18px; }
+/* 两张内容表的卡片化 + 列名（与上面 data-ua-page="download" 那套同款，只是这次
+   由 .dl-grid / .dl-cat 存在与否来限定页面） */
+html.ua-mobile:not([data-ua-page]) .deco-table-wrap { max-width: 100%; overflow: visible; border: 0; background: none; }
+html.ua-mobile:not([data-ua-page]) .deco-table,
+html.ua-mobile:not([data-ua-page]) .deco-table thead,
+html.ua-mobile:not([data-ua-page]) .deco-table tbody,
+html.ua-mobile:not([data-ua-page]) .deco-table tr,
+html.ua-mobile:not([data-ua-page]) .deco-table th,
+html.ua-mobile:not([data-ua-page]) .deco-table td { display: block; width: auto; max-width: 100%; min-width: 0; }
+html.ua-mobile:not([data-ua-page]) .deco-table thead { display: none; }
+html.ua-mobile:not([data-ua-page]) .deco-table tr {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: 14px;
+  background: var(--paper, #fff);
+}
+html.ua-mobile:not([data-ua-page]) .deco-table td {
+  padding: 7px 0;
+  border: 0;
+  border-bottom: 1px dashed var(--phix-mist, #F5F3FF);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html.ua-mobile:not([data-ua-page]) .deco-table td:first-child {
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+  font-weight: 700;
+  color: var(--ink, #1E1B2E);
+}
+html.ua-mobile:not([data-ua-page]) .deco-table td::before { font-weight: 700; color: var(--ink-2, #5B5670); }
+html.ua-mobile:not([data-ua-page]) .deco-table:not(:has(th:nth-child(4))) td:nth-child(2)::before { content: "安装版："; }
+html.ua-mobile:not([data-ua-page]) .deco-table:not(:has(th:nth-child(4))) td:nth-child(3)::before { content: "免安装版："; }
+html.ua-mobile:not([data-ua-page]) .deco-table:has(th:nth-child(4)):not(.deco-table--hash) td:nth-child(2)::before { content: "平台："; }
+html.ua-mobile:not([data-ua-page]) .deco-table:has(th:nth-child(4)):not(.deco-table--hash) td:nth-child(3)::before { content: "最低系统版本："; }
+html.ua-mobile:not([data-ua-page]) .deco-table:has(th:nth-child(4)):not(.deco-table--hash) td:nth-child(4)::before { content: "架构："; }
+html.ua-mobile:not([data-ua-page]) .dl-card__specs > div {
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr);
+  gap: 2px 10px;
+  align-items: start;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+}
+html.ua-mobile:not([data-ua-page]) .dl-card__specs dt { width: auto; font-size: .75rem; }
+html.ua-mobile:not([data-ua-page]) .dl-card__specs dd { font-size: .8125rem; }
+html.ua-mobile:not([data-ua-page]) .deco-table--hash tr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+html.ua-mobile:not([data-ua-page]) .deco-table--hash td { padding: 0; border: 0; }
+html.ua-mobile:not([data-ua-page]) .deco-table--hash td:nth-child(1) { flex: 1 1 100%; }
+html.ua-mobile:not([data-ua-page]) .deco-table--hash td:nth-child(4) { margin-left: auto; }
+html.ua-mobile:not([data-ua-page]) .dl-hash { display: block; max-width: 12ch; overflow: hidden; white-space: nowrap; letter-spacing: 0; font-size: .875rem; }
+html.ua-mobile:not([data-ua-page]) .dl-copy { min-width: 44px; min-height: 44px; }
+html.ua-mobile:not([data-ua-page]) .dl-cat__head { min-height: 56px; }
+html.ua-mobile:not([data-ua-page]) .deco-faq__q { min-height: 48px; }

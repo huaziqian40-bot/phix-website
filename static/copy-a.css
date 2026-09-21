@@ -1,0 +1,112 @@
+/* 文案改版 A 组样式（2026-09-13）
+   只服务三页：index.html（首页）、about.html（关于我们）、support.html（服务与支持）。
+   单独成文件是为了避免与其它代理并行改 static/site.css 冲突；页面里在 site.css 之后引入。
+
+   内容：
+   0) .hero__title--latin / .hero__tagline-en —— 首页新口号（repair restore renew 必须一行）
+   1) .hero__links —— 首屏两个主按钮下面的一行次级链接（保留下载入口）
+   2) .info-block / .info-list —— 「为什么开始做 / 谁在维护 / 服务谁」这类分条说明块
+   3) .deco-ai-note —— 服务与支持页里 AI 内容会出本机的边界说明
+   */
+
+/* ---- 0. 首页新口号（2026-09-13 用户指定）----
+   「repair restore renew」必须保持一行：用 nowrap + 随视口缩放的字号。
+   字号按最窄 320px 估算：6.4vw ≈ 20px，20 个字符（含空格）约 200px，远小于可用宽度，
+   不会造成横向溢出（mobile_audit 五档宽度验证）。 */
+.hero__title--latin {
+  font-size: clamp(1.5rem, 6.4vw, 4rem);
+  letter-spacing: -.02em;
+  white-space: nowrap;
+}
+/* 英文标语单独一行 */
+.hero__tagline-en {
+  margin: 4px 0 20px;
+  font-size: clamp(1rem, 1.7vw, 1.375rem);
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: rgba(255, 255, 255, .94);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .38);
+}
+
+/* ---- 1. 首屏次级链接（承接原来的「产品一览 / 下载安装包」）---- */
+.hero__links {
+  margin: 16px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  font-size: .9375rem;
+  line-height: 1.6;
+}
+.hero__links a {
+  color: rgba(255, 255, 255, .88);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, .42);
+  padding-bottom: 1px;
+}
+.hero__links a:hover {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+/* ---- 2. 分条说明块（关于我们新增小节 / 首页维修服务说明共用）---- */
+.info-block {
+  margin: 22px 0 0;
+}
+.info-block__item + .info-block__item {
+  margin-top: 16px;
+}
+.info-block__term {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink, #1b1526);
+}
+.info-block__term::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 9px;
+  border-radius: 50%;
+  vertical-align: .08em;
+  background: linear-gradient(135deg, var(--phix-violet, #9A2BE2), var(--phix-violet-2, #6D28D9));
+}
+.info-block__desc {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.9;
+  color: var(--ink-2, #4a4358);
+}
+.info-block__desc a {
+  color: var(--phix-violet-2, #6D28D9);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 放在「关于我们」左侧文字块里时，沿用该列的字号与行高 */
+.about-split__text .info-block__desc {
+  font-size: 1.0625rem;
+  line-height: 1.95;
+}
+
+/* ---- 3. 服务与支持：AI 内容边界提示 ---- */
+.deco-ai-note {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border-left: 3px solid var(--phix-violet, #9A2BE2);
+  border-radius: 0 10px 10px 0;
+  background: var(--phix-mist, #F5F3FF);
+  font-size: .9375rem;
+  line-height: 1.8;
+  color: var(--ink-2, #4a4358);
+}
+
+/* ---- 响应式 ---- */
+@media (max-width: 900px) {
+  .hero__links {
+    margin-top: 14px;
+    gap: 6px 14px;
+    font-size: .875rem;
+  }
+}

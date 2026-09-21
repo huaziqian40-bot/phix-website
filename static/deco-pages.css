@@ -1,0 +1,472 @@
+/* phix 官网「服务与支持」/「下载」页装饰样式（2026-09-13）
+   风景图 + 紫色色罩：与首页 hero / about.css 同款渐变叠法，
+   色罩在 CSS 里叠、不烧进图片。
+   单独成文件是为了避免与其它代理并行改 static/site.css 冲突。 */
+
+.deco-page {
+  min-height: calc(100dvh - 64px);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #fff 0%, var(--phix-mist, #F5F3FF) 44%, #fff 100%);
+}
+
+/* ---- Hero 色带（全幅风景图 + 紫色色罩）---- */
+.deco-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: clamp(240px, 34vh, 420px);
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+}
+.deco-hero--support {
+  background-image:
+    linear-gradient(115deg, rgba(76, 29, 149, .86), rgba(109, 40, 217, .66) 45%, rgba(226, 147, 214, .45)),
+    url('/assets/decor-support.jpg');
+}
+.deco-hero--download {
+  background-image:
+    linear-gradient(115deg, rgba(76, 29, 149, .86), rgba(109, 40, 217, .66) 45%, rgba(226, 147, 214, .45)),
+    url('/assets/decor-download.jpg');
+}
+.deco-hero__inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(30px, 5vw, 64px) clamp(20px, 5vw, 96px);
+}
+.deco-hero__kicker {
+  margin: 0 0 10px;
+  font-size: .8125rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .82);
+}
+.deco-hero__title {
+  margin: 0 0 14px;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 16px rgba(20, 8, 40, .35);
+  text-wrap: balance;
+}
+.deco-hero__subtitle {
+  margin: 0;
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.8;
+  color: rgba(255, 255, 255, .94);
+  max-width: 46em;
+}
+.deco-hero__note {
+  margin: 14px 0 0;
+  font-size: .9rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, .8);
+}
+
+/* ---- 内容分区 ---- */
+.deco-section {
+  /* 2026-09-13 修 BUG：父级 .deco-page 是 flex 列容器，而这里只写了
+     `margin: 0 auto` —— 在 flex 交叉轴上 **auto 外边距会让元素不再 stretch**，
+     于是每个 section 收缩成"内容宽度"（实测 410px），里面的 .dl-grid 只剩 280px，
+     8 张下载卡片被迫竖排成一溜。加 width:100% 让它先占满、再由 max-width 收窄居中。 */
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(40px, 6vw, 72px) clamp(20px, 5vw, 96px);
+  box-sizing: border-box;
+}
+.deco-section--tight { padding-top: 12px; }
+.deco-section__title {
+  margin: 0 0 10px;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink, #1E1B2E);
+}
+.deco-section__lead {
+  margin: 0 0 30px;
+  color: var(--ink-2, #5B5670);
+  line-height: 1.8;
+  max-width: 54em;
+}
+
+/* ---- 排查步骤 ---- */
+.deco-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+.deco-step {
+  position: relative;
+  padding: 22px 22px 22px 70px;
+  background: var(--paper, #fff);
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(154, 43, 226, .12));
+}
+.deco-step__num {
+  position: absolute;
+  left: 18px;
+  top: 20px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--phix-violet, #9A2BE2), var(--phix-violet-2, #6D28D9));
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+}
+.deco-step__title {
+  margin: 0 0 6px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--ink, #1E1B2E);
+}
+.deco-step__text {
+  margin: 0;
+  font-size: .9375rem;
+  line-height: 1.75;
+  color: var(--ink-2, #5B5670);
+}
+
+/* ---- FAQ（原生 details/summary，默认收起）---- */
+.deco-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.deco-faq__item {
+  background: var(--paper, #fff);
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(154, 43, 226, .10));
+  overflow: hidden;
+}
+.deco-faq__q {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink, #1E1B2E);
+}
+.deco-faq__q::-webkit-details-marker { display: none; }
+.deco-faq__q:hover { background: var(--phix-mist, #F5F3FF); }
+.deco-faq__q::after {
+  content: "＋";
+  margin-left: auto;
+  flex: none;
+  color: var(--phix-violet, #9A2BE2);
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: transform .22s ease;
+}
+.deco-faq__item[open] .deco-faq__q::after { transform: rotate(45deg); }
+.deco-faq__a {
+  padding: 2px 20px 18px;
+  margin: 0;
+  font-size: .9375rem;
+  line-height: 1.8;
+  color: var(--ink-2, #5B5670);
+}
+
+/* ---- 联系卡片 ---- */
+.deco-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.deco-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+  background: var(--paper, #fff);
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(154, 43, 226, .10));
+}
+.deco-card__icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--phix-mist, #F5F3FF);
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  color: var(--phix-violet, #9A2BE2);
+  font-size: 1.2rem;
+}
+.deco-card__label {
+  font-size: .8125rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--ink-2, #5B5670);
+  text-transform: uppercase;
+}
+.deco-card__value {
+  font-size: .9375rem;
+  line-height: 1.6;
+  color: var(--ink, #1E1B2E);
+  word-break: break-all;
+}
+.deco-card__value a {
+  color: var(--phix-violet-2, #6D28D9);
+  text-decoration: none;
+}
+.deco-card__value a:hover { text-decoration: underline; }
+
+/* ---- 服务状态 / 系统要求 表格 ---- */
+.deco-table-wrap {
+  overflow-x: auto;
+  margin: 0 0 8px;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: 12px;
+  background: var(--paper, #fff);
+}
+.deco-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+  min-width: 480px;
+}
+.deco-table th,
+.deco-table td {
+  text-align: left;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+  vertical-align: top;
+  color: var(--ink-2, #5B5670);
+}
+.deco-table thead th {
+  background: var(--phix-mist, #F5F3FF);
+  color: var(--ink, #1E1B2E);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.deco-table tbody tr:last-child td { border-bottom: none; }
+.deco-table td:first-child { white-space: nowrap; font-weight: 600; color: var(--ink, #1E1B2E); }
+.deco-table__note {
+  margin: 0;
+  font-size: .8125rem;
+  color: var(--ink-2, #5B5670);
+  line-height: 1.7;
+}
+
+/* ---- 提交反馈（表单）---- */
+.deco-form {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.deco-form .field { display: flex; flex-direction: column; gap: 6px; }
+.deco-form .field label { font-size: 14px; font-weight: 600; color: var(--ink, #1E1B2E); }
+.deco-form .field input,
+.deco-form .field select,
+.deco-form .field textarea {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-input, 10px);
+  background: var(--paper, #fff);
+  color: var(--ink, #1E1B2E);
+  font: inherit;
+}
+.deco-form .field textarea { height: auto; min-height: 96px; padding: 12px 14px; resize: vertical; }
+.deco-form .field input:focus,
+.deco-form .field select:focus,
+.deco-form .field textarea:focus {
+  outline: none;
+  border-color: var(--phix-violet, #9A2BE2);
+  box-shadow: 0 0 0 3px rgba(154, 43, 226, .16);
+}
+.deco-form__actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* ---- 宽幅色带分隔（中间插入一段）---- */
+.deco-band {
+  position: relative;
+  color: #fff;
+  background-image:
+    linear-gradient(115deg, rgba(76, 29, 149, .88) 0%, rgba(109, 40, 217, .62) 46%, rgba(226, 147, 214, .48) 100%),
+    url('/assets/band-support.jpg');
+  background-size: cover;
+  background-position: center;
+}
+.deco-band__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(40px, 6vw, 72px) clamp(20px, 5vw, 96px);
+}
+.deco-band__kicker {
+  margin: 0 0 8px;
+  font-size: .8125rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .82);
+}
+.deco-band__title {
+  margin: 0 0 12px;
+  font-size: clamp(1.5rem, 2.6vw, 2.125rem);
+  line-height: 1.2;
+  font-weight: 800;
+}
+.deco-band__copy {
+  margin: 0 0 22px;
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, .92);
+  max-width: 46em;
+}
+.deco-band__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+/* 深色底上的描边按钮（白字白边，与 about.css 同款）*/
+.btn--onDark {
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, .72) !important;
+  background: transparent !important;
+}
+.btn--onDark:hover {
+  background: rgba(255, 255, 255, .16) !important;
+  color: #fff !important;
+}
+
+/* ---- 下载页：分类区上面留一点间距 ---- */
+.deco-dl-cats { padding-top: 24px; }
+
+/* ---- 响应式 ---- */
+@media (max-width: 960px) {
+  .deco-steps { grid-template-columns: 1fr; }
+  .deco-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 620px) {
+  .deco-cards { grid-template-columns: 1fr; }
+  .deco-step { padding-left: 64px; }
+  .deco-hero__inner { padding: 28px 18px; }
+  .deco-section { padding-left: 18px; padding-right: 18px; }
+  .deco-band__inner { padding: 36px 18px; }
+}
+
+/* ================= 下载页文案改造补充（2026-09-13）=================
+   1) 每张卡片加「文件名 / 版本 / 更新日期 / 平台·架构 / 安装方式 / 精确大小」规格表；
+   2) 文件校验区：SHA-256 等宽展示 + 一键复制按钮；
+   3) 「卸载与数据」说明列表；
+   4) hero 里的外链与 code 在深色底上的可读性。                           */
+
+/* ---- 1. 卡片规格表 ---- */
+.dl-card__specs {
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: .8125rem;
+  line-height: 1.6;
+  color: var(--ink-2, #5B5670);
+  text-align: left;
+}
+.dl-card__specs > div {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.dl-card__specs dt {
+  flex: none;
+  width: 5.25em;
+  font-weight: 700;
+  color: var(--ink-2, #5B5670);
+  white-space: nowrap;
+}
+.dl-card__specs dd {
+  margin: 0;
+  min-width: 0;
+  color: var(--ink, #1E1B2E);
+  overflow-wrap: anywhere;
+}
+.dl-card__specs code {
+  font-size: .78rem;
+  overflow-wrap: anywhere;
+  color: var(--phix-violet-2, #6D28D9);
+}
+
+/* ---- 2. 校验值表 + 复制按钮 ---- */
+.deco-table--hash td { font-size: .8125rem; }
+.deco-table--hash td:first-child { white-space: normal; }
+.dl-hash {
+  display: inline-block;
+  font-size: .75rem;
+  line-height: 1.5;
+  word-break: break-all;
+  color: var(--ink, #1E1B2E);
+  user-select: all;           /* 单击即整段选中，方便手动复制 */
+}
+.dl-copy {
+  flex: none;
+  padding: 4px 12px;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: 999px;
+  background: var(--phix-mist, #F5F3FF);
+  color: var(--phix-violet-2, #6D28D9);
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.dl-copy:hover { background: var(--phix-lilac, #C4B5FD); border-color: var(--phix-violet, #9A2BE2); }
+.dl-copy:focus-visible { outline: 2px solid var(--phix-violet, #9A2BE2); outline-offset: 2px; }
+.dl-copy.is-done {
+  background: var(--phix-violet, #9A2BE2);
+  border-color: var(--phix-violet, #9A2BE2);
+  color: #fff;
+}
+
+/* ---- 3. 「卸载与数据」说明列表 ---- */
+.deco-notes {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: .9375rem;
+  line-height: 1.85;
+  color: var(--ink-2, #5B5670);
+  max-width: 62em;
+}
+.deco-notes strong { color: var(--ink, #1E1B2E); }
+
+/* ---- 4. hero 深色底上的链接与行内代码 ---- */
+.deco-hero__note a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.deco-hero__note a:hover { color: var(--phix-lilac, #C4B5FD); }
+.deco-hero__note code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .18);
+  font-size: .88em;
+}
+
+@media (max-width: 620px) {
+  .dl-card__specs dt { width: 4.75em; }
+}

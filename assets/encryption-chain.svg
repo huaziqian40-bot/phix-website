@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 470" role="img"
+     aria-labelledby="encTitle encDesc" width="1120" height="470">
+  <title id="encTitle">phix 端到端加密链路示意</title>
+  <desc id="encDesc">口令经 scrypt 派生 KEK，KEK 解开 DEK，DEK 经 HKDF 派生每个对象独立的对象密钥，
+  对象密钥以 AES-256-GCM 加密出密文信封上传；服务端只保存密文。AAD 绑定用户与对象名；换密码只需用新口令重新包裹 DEK。</desc>
+
+  <defs>
+    <style>
+      .t   { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; }
+      .t-title { font-size: 21px; font-weight: 700; fill: #1E1B2E; }
+      .t-sub   { font-size: 13px; fill: #5B5670; }
+      .t-box   { font-size: 15px; font-weight: 600; fill: #1E1B2E; }
+      .t-box-s { font-size: 11.5px; fill: #5B5670; }
+      .t-edge  { font-size: 11.5px; font-weight: 600; fill: #6D28D9; }
+      .t-note  { font-size: 12.5px; fill: #5B5670; }
+      .t-note-b{ font-size: 12.5px; font-weight: 600; fill: #6D28D9; }
+      .box { fill: #FFFFFF; stroke: #C4B5FD; stroke-width: 1.6; rx: 12; }
+      .box-soft { fill: #F5F3FF; stroke: #C4B5FD; stroke-width: 1.6; rx: 12; }
+      .box-server { fill: #EDE4FE; stroke: #9A2BE2; stroke-width: 1.8; rx: 12; }
+      .flow { stroke: #9A2BE2; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .flow-dashed { stroke: #9A2BE2; stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; marker-end: url(#arrow); }
+      .panel { fill: #FBFAFF; stroke: #E9D5FF; stroke-width: 1.4; rx: 14; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9A2BE2"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1120" height="470" fill="#FFFFFF"/>
+  <text class="t t-title" x="28" y="42">phix 云同步 · 端到端加密链路</text>
+  <text class="t t-sub" x="28" y="66">口令、KEK、DEK 都只在你的设备上；服务器拿到的是密文，解不开也用不上。</text>
+
+  <!-- 主链路 -->
+  <g>
+    <rect class="box-soft" x="28" y="108" width="150" height="76"/>
+    <text class="t t-box" x="103" y="140" text-anchor="middle">你的口令</text>
+    <text class="t t-box-s" x="103" y="162" text-anchor="middle">只在本地输入</text>
+  </g>
+
+  <path class="flow" d="M 182 146 L 226 146"/>
+  <text class="t t-edge" x="204" y="136" text-anchor="middle">scrypt</text>
+
+  <g>
+    <rect class="box" x="230" y="108" width="150" height="76"/>
+    <text class="t t-box" x="305" y="140" text-anchor="middle">KEK</text>
+    <text class="t t-box-s" x="305" y="162" text-anchor="middle">包裹密钥 · 不上传</text>
+  </g>
+
+  <path class="flow" d="M 384 146 L 428 146"/>
+  <text class="t t-edge" x="406" y="136" text-anchor="middle">解开</text>
+
+  <g>
+    <rect class="box-soft" x="432" y="108" width="150" height="76"/>
+    <text class="t t-box" x="507" y="140" text-anchor="middle">DEK</text>
+    <text class="t t-box-s" x="507" y="162" text-anchor="middle">数据根密钥 · 32 字节</text>
+  </g>
+
+  <path class="flow" d="M 586 146 L 630 146"/>
+  <text class="t t-edge" x="608" y="136" text-anchor="middle">HKDF</text>
+
+  <g>
+    <rect class="box" x="634" y="108" width="176" height="76"/>
+    <text class="t t-box" x="722" y="140" text-anchor="middle">对象密钥</text>
+    <text class="t t-box-s" x="722" y="162" text-anchor="middle">每个同步对象一把</text>
+  </g>
+
+  <path class="flow" d="M 814 146 L 858 146"/>
+  <text class="t t-edge" x="836" y="136" text-anchor="middle">AES-256-GCM</text>
+
+  <g>
+    <rect class="box-soft" x="862" y="108" width="230" height="76"/>
+    <text class="t t-box" x="977" y="138" text-anchor="middle">密文信封</text>
+    <text class="t t-box-s" x="977" y="162" text-anchor="middle">PHIX1.&lt;nonce&gt;.&lt;ct&gt;</text>
+  </g>
+
+  <!-- 上传 -->
+  <path class="flow" d="M 977 188 C 977 232, 700 226, 640 258"/>
+  <text class="t t-edge" x="820" y="228" text-anchor="middle">上传（只有密文）</text>
+
+  <g>
+    <rect class="box-server" x="360" y="262" width="280" height="72"/>
+    <text class="t t-box" x="500" y="294" text-anchor="middle">phix 服务器</text>
+    <text class="t t-box-s" x="500" y="316" text-anchor="middle">只保存密文 · 拿不到口令与密钥</text>
+  </g>
+
+  <!-- AAD 说明 -->
+  <path class="flow-dashed" d="M 722 188 C 722 236, 660 244, 632 276"/>
+  <g>
+    <rect class="panel" x="28" y="262" width="300" height="72"/>
+    <text class="t t-note-b" x="44" y="288">AAD 绑定身份与对象</text>
+    <text class="t t-note" x="44" y="310">phix/v1/object|用户ID|对象名</text>
+    <text class="t t-note" x="44" y="327">服务端张冠李戴 → 解不开</text>
+  </g>
+
+  <!-- 换密码 -->
+  <g>
+    <rect class="panel" x="676" y="262" width="416" height="72"/>
+    <text class="t t-note-b" x="692" y="288">换密码不用重传数据</text>
+    <text class="t t-note" x="692" y="310">用旧口令解开 DEK，再用新口令重新包裹一次即可；</text>
+    <text class="t t-note" x="692" y="327">云端的密文一个字节都不用动。</text>
+  </g>
+
+  <!-- 传输层 -->
+  <g>
+    <rect class="panel" x="28" y="352" width="516" height="94"/>
+    <text class="t t-note-b" x="44" y="378">传输层还有一层信封（不依赖 HTTPS 也安全）</text>
+    <text class="t t-note" x="44" y="400">X25519 密封盒 + AES-256-GCM；每次请求换一把临时会话密钥；</text>
+    <text class="t t-note" x="44" y="420">服务器公钥首次信任后固定；时间戳 ±300 秒 + nonce 5 分钟去重。</text>
+  </g>
+
+  <!-- 边界 -->
+  <g>
+    <rect class="panel" x="564" y="352" width="528" height="94"/>
+    <text class="t t-note-b" x="580" y="378">这条链路保护的是「云同步」这一段</text>
+    <text class="t t-note" x="580" y="400">本机上的共享账号文件当前为明文；发给 AI 的内容会到第三方服务商；</text>
+    <text class="t t-note" x="580" y="420">密码与恢复码同时丢失 → 云端数据无法解开。</text>
+  </g>
+</svg>

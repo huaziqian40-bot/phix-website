@@ -1,0 +1,375 @@
+/* ============================================================================
+   phix 手机版 · 页面层第二组 A：技术文档 /docs/
+   ----------------------------------------------------------------------------
+   只由 static/ua-switch.js 在手机 UA（或 ?mobile=1）时注入（页面里一行
+   <meta name="mobile-css" content="/static/mobile-docs.css">），桌面版永远不加载。
+   基础层在 static/mobile.css（顶栏 56px / 汉堡抽屉 / 排版 / 按钮），本文件只写
+   **文档页自己的**规则，一律以 html.ua-mobile[data-ua-page="docs"] 开头，
+   不动 mobile.css 已有的选择器，也不动 site.css / copy-c.css。
+
+   桌面版是三栏壳（左 260px 目录 + 正文 + ≥1280px 右 200px 本页目录），手机上：
+     0) 丢掉与汉堡顶栏重复的 .docs-topbar，正文单栏 16px/1.75
+     1) 左栏目录 → 左侧固定抽屉（默认 translateX(-102%)），由 JS 补的
+        「目录」按钮 .docs-tocbtn 开合（脚本见 docs.html 末尾内联脚本）
+     2) 5 张大表格 → 每条一卡（字段名/值上下排）
+     3) 加密链路示意图可点开放大（运行期包一层 <a>）
+     4) 底部分页 → 整宽两个按钮 + 居中的「第 n / 24 节」
+   ============================================================================ */
+
+/* ---- 0. 页面外壳与正文排版 ------------------------------------------------ */
+/* 顶栏：桌面版 .docs-topbar 自己带 logo + 标题 + 6 个链接；手机版上它和
+   ua-switch.js 注入的固定汉堡顶栏重叠（两个 logo、两排导航，还会把 sticky
+   顶栏叠在固定顶栏上）。手机版直接去掉它——站点导航交给汉堡抽屉，
+   「PHIX 技术文档」这个标题正文里本来就有 <h1 class="docs-content__title">。 */
+html.ua-mobile[data-ua-page="docs"] .docs-topbar { display: none; }
+
+/* 三栏 grid → 单栏（左栏已抽成抽屉，右栏本页目录本来 ≤1279px 就是 display:none） */
+html.ua-mobile[data-ua-page="docs"] .docs-shell {
+  display: block;
+  min-height: 0;
+  padding-top: 0;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-content {
+  min-width: 0;
+  padding: 18px 16px 48px;
+  font-size: 16px;
+  line-height: 1.75;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-content__title { font-size: 1.6rem; margin-bottom: 10px; }
+html.ua-mobile[data-ua-page="docs"] .docs-content__intro { font-size: 1rem; line-height: 1.75; }
+html.ua-mobile[data-ua-page="docs"] .docs-content p { font-size: 1rem; line-height: 1.75; }
+html.ua-mobile[data-ua-page="docs"] .docs-content ul,
+html.ua-mobile[data-ua-page="docs"] .docs-content ol { padding-left: 1.15em; line-height: 1.75; }
+html.ua-mobile[data-ua-page="docs"] .docs-content li { margin: 8px 0; font-size: 1rem; line-height: 1.75; }
+/* 小节标题：锚点跳转要停在固定顶栏之下（桌面值 80px 在手机上不够） */
+html.ua-mobile[data-ua-page="docs"] .docs-section h2 {
+  scroll-margin-top: calc(var(--phix-topbar, 56px) + 14px);
+  font-size: 1.3rem;
+  margin: 34px 0 14px;
+  padding-bottom: 8px;
+}
+/* 提示框：桌面 .9rem 在手机上偏小 */
+html.ua-mobile[data-ua-page="docs"] .callout {
+  padding: 14px 16px;
+  font-size: 1rem;
+  line-height: 1.75;
+  gap: 8px;
+}
+/* 代码块：保持横向滚动（ASCII 示意图换行会散架），只收窄内边距 */
+html.ua-mobile[data-ua-page="docs"] .docs-content pre {
+  max-width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin: 0 0 18px;
+  -webkit-overflow-scrolling: touch;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-content pre code { font-size: .8125rem; }
+/* FAQ 三问三答 */
+html.ua-mobile[data-ua-page="docs"] .docs-faq__item { margin: 0 0 16px; }
+
+/* ---- 1. 左栏目录 → 左侧抽屉 ---------------------------------------------- */
+/* 默认藏到视口左侧之外（translateX(-102%) + visibility:hidden，后者防止
+   「只是看不见却还能点到」）。开合状态由 <html class="docs-toc-open"> 控制，
+   这个 class 由 docs.html 末尾那个内联脚本切（纯 CSS 造不出可点的按钮）。 */
+html.ua-mobile[data-ua-page="docs"] .docs-nav {
+  position: fixed;
+  top: var(--phix-topbar, 56px);
+  left: 0;
+  bottom: 0;
+  z-index: 95;
+  width: min(78vw, 320px);
+  height: auto;
+  box-sizing: border-box;
+  padding: 8px 12px calc(24px + env(safe-area-inset-bottom, 0px));
+  gap: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--paper, #fff);
+  border-right: 1px solid var(--phix-lilac, #C4B5FD);
+  box-shadow: 16px 0 40px rgba(30, 27, 46, .22);
+  font-size: 1rem;
+  transform: translateX(-102%);
+  visibility: hidden;
+  transition: transform .24s ease, visibility .24s ease;
+}
+html.ua-mobile[data-ua-page="docs"].docs-toc-open .docs-nav {
+  transform: translateX(0);
+  visibility: visible;
+}
+/* 遮罩：点它 = 点抽屉外面 = 关闭（脚本监听 document 点击） */
+html.ua-mobile[data-ua-page="docs"] .docs-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 92;
+  background: rgba(30, 27, 46, .45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .24s ease, visibility .24s ease;
+}
+html.ua-mobile[data-ua-page="docs"].docs-toc-open .docs-shell::before {
+  opacity: 1;
+  visibility: visible;
+}
+/* 抽屉开着时锁住背后滚动 */
+html.ua-mobile[data-ua-page="docs"].docs-toc-open,
+html.ua-mobile[data-ua-page="docs"].docs-toc-open body { overflow: hidden; }
+
+/* 「目录」按钮：脚本插到 <body> 第一个子节点，定位在固定顶栏右端（顶栏左端
+   是汉堡 + logo）。高度 44px ≥ 触摸目标，z-index 高于遮罩与抽屉，开着时
+   再点一次也能收起。 */
+html.ua-mobile[data-ua-page="docs"] .docs-tocbtn {
+  position: fixed;
+  top: 6px;
+  right: 12px;
+  z-index: 96;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  min-width: 64px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: 999px;
+  background: var(--phix-mist, #F5F3FF);
+  color: var(--phix-violet-2, #6D28D9);
+  font: inherit;
+  font-size: .9375rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-tocbtn::before {
+  content: "";
+  width: 14px;
+  height: 10px;
+  /* 三横线小图标（与汉堡区分：这里是 3 条等长细线 + 圆点） */
+  background:
+    linear-gradient(currentColor, currentColor) 0 0 / 100% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) 0 4px / 100% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) 0 8px / 100% 2px no-repeat;
+  border-radius: 2px;
+}
+html.ua-mobile[data-ua-page="docs"].docs-toc-open .docs-tocbtn {
+  background: var(--phix-violet, #9A2BE2);
+  border-color: var(--phix-violet, #9A2BE2);
+  color: #fff;
+}
+
+/* 抽屉里的 7 个分组 + 24 个锚点：触摸目标 ≥48px（summary ≥52px） */
+html.ua-mobile[data-ua-page="docs"] .docs-nav__group + .docs-nav__group { margin-top: 4px; }
+html.ua-mobile[data-ua-page="docs"] .docs-nav__group-title {
+  min-height: 52px;
+  padding: 14px 12px;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-nav__link {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 12px 12px 24px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* ---- 2. 正文大表格 → 每条一卡 -------------------------------------------- */
+/* 桌面版 .docs-table 是 min-width:480px + 容器横向滚动的宽表；手机上改成
+   「一行一卡」：<tr> 变卡片、第一个 <td>（对象名 / 平台 / code / 项）当卡片
+   标题、其余 <td> 竖排成字段值（虚线分隔）。表头 <thead> 在卡片布局里没有
+   位置，隐藏（这几张表的首列本身就是"字段名"语义：对象名、平台、code、项）。 */
+html.ua-mobile[data-ua-page="docs"] .docs-table-wrap {
+  max-width: 100%;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  margin: 0 0 20px;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-table,
+html.ua-mobile[data-ua-page="docs"] .docs-table thead,
+html.ua-mobile[data-ua-page="docs"] .docs-table tbody,
+html.ua-mobile[data-ua-page="docs"] .docs-table tr,
+html.ua-mobile[data-ua-page="docs"] .docs-table th,
+html.ua-mobile[data-ua-page="docs"] .docs-table td {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-table thead { display: none; }
+html.ua-mobile[data-ua-page="docs"] .docs-table tr {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-card, 16px);
+  background: var(--paper, #fff);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(154, 43, 226, .10));
+}
+html.ua-mobile[data-ua-page="docs"] .docs-table td {
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px dashed var(--phix-mist, #F5F3FF);
+  font-size: .9375rem;
+  line-height: 1.7;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-table td:first-child {
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink, #1E1B2E);
+}
+html.ua-mobile[data-ua-page="docs"] .docs-table td:last-child { border-bottom: 0; padding-bottom: 0; }
+html.ua-mobile[data-ua-page="docs"] .docs-table code { font-size: .8125rem; }
+
+/* ---- 3. 加密链路示意图：可点开放大 -------------------------------------- */
+/* 图片本身 copy-c.css 已经给了 width:100%/height:auto；这里补 cursor:zoom-in，
+   以及运行期包上去的 <a class="docs-figure__zoom">（target=_blank 看原图 SVG）。
+   基础层给所有 a:not(.btn) 加了 min-height:44px + 上下 10px 内边距，这里要显式
+   压掉，否则图外面会多出 20px 空白。 */
+html.ua-mobile[data-ua-page="docs"] .docs-figure { padding: 10px; margin: 16px 0 20px; }
+html.ua-mobile[data-ua-page="docs"] .docs-figure img {
+  max-width: 100%;
+  height: auto;
+  cursor: zoom-in;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-figure__zoom {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  cursor: zoom-in;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-figure figcaption { font-size: .8125rem; line-height: 1.75; }
+
+/* ---- 4. 底部分页 → 整宽两个按钮 ------------------------------------------ */
+html.ua-mobile[data-ua-page="docs"] .docs-pager {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 34px;
+  padding-top: 16px;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-pager__link {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 56px;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  justify-content: center;
+}
+html.ua-mobile[data-ua-page="docs"] .docs-pager__label { font-size: .75rem; }
+html.ua-mobile[data-ua-page="docs"] .docs-pager__title { font-size: 1rem; }
+html.ua-mobile[data-ua-page="docs"] .docs-pager__link--next { text-align: left; }
+/* 「第 n / 24 节」提到两个按钮上面居中（DOM 里它在中间，用 order 挪） */
+html.ua-mobile[data-ua-page="docs"] .docs-pager__progress {
+  order: -1;
+  text-align: center;
+  font-size: .8125rem;
+}
+/* 页脚导航里「产品」「下载」这类两字链接在基础层只有 30px 宽（高 44px 够）：
+   页面层补 min-width:44px，让触摸目标两个方向都 ≥44px（不影响其它页面的页脚）。 */
+html.ua-mobile[data-ua-page="docs"] .site-footer__links a {
+  min-width: 44px;
+  justify-content: center;
+}
+
+/* ============================================================================
+   兜底：直接打开 /docs.html 时，ua-switch.js 的 pathname 推导
+   （/(?:^|\/)([a-z0-9_-]+)\/?$/）匹配不到带 .html 后缀的段，
+   <html> 上不会有 data-ua-page，上面的规则全部落空。
+   官网内部链接与导航用的都是 /docs/（server.py route_map），但为了别名 URL
+   也还能用，这里用本页独有的 .docs-shell 再兜一遍关键几条（不含纯视觉微调）。
+   ============================================================================ */
+html.ua-mobile:not([data-ua-page]) .docs-topbar { display: none; }
+html.ua-mobile:not([data-ua-page]) .docs-shell { display: block; min-height: 0; }
+html.ua-mobile:not([data-ua-page]) .docs-content { padding: 18px 16px 48px; font-size: 16px; line-height: 1.75; }
+html.ua-mobile:not([data-ua-page]) .docs-nav {
+  position: fixed;
+  top: var(--phix-topbar, 56px);
+  left: 0;
+  bottom: 0;
+  z-index: 95;
+  width: min(78vw, 320px);
+  height: auto;
+  box-sizing: border-box;
+  padding: 8px 12px calc(24px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  background: var(--paper, #fff);
+  border-right: 1px solid var(--phix-lilac, #C4B5FD);
+  box-shadow: 16px 0 40px rgba(30, 27, 46, .22);
+  transform: translateX(-102%);
+  visibility: hidden;
+  transition: transform .24s ease, visibility .24s ease;
+}
+html.ua-mobile:not([data-ua-page]).docs-toc-open .docs-nav { transform: translateX(0); visibility: visible; }
+/* 遮罩 + 开合时锁滚动 + 按钮的「已打开」态（同上，兜底也带上，观感才一致） */
+html.ua-mobile:not([data-ua-page]) .docs-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 92;
+  background: rgba(30, 27, 46, .45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .24s ease, visibility .24s ease;
+}
+html.ua-mobile:not([data-ua-page]).docs-toc-open .docs-shell::before { opacity: 1; visibility: visible; }
+html.ua-mobile:not([data-ua-page]).docs-toc-open,
+html.ua-mobile:not([data-ua-page]).docs-toc-open body { overflow: hidden; }
+html.ua-mobile:not([data-ua-page]).docs-toc-open .docs-tocbtn {
+  background: var(--phix-violet, #9A2BE2);
+  border-color: var(--phix-violet, #9A2BE2);
+  color: #fff;
+}
+html.ua-mobile:not([data-ua-page]) .site-footer__links a { min-width: 44px; justify-content: center; }
+html.ua-mobile:not([data-ua-page]) .docs-pager__progress { order: -1; text-align: center; }
+html.ua-mobile:not([data-ua-page]) .docs-nav__group-title { min-height: 52px; }
+html.ua-mobile:not([data-ua-page]) .docs-nav__link { display: flex; align-items: center; min-height: 48px; }
+html.ua-mobile:not([data-ua-page]) .docs-tocbtn {
+  position: fixed;
+  top: 6px;
+  right: 12px;
+  z-index: 96;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  min-width: 64px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: 999px;
+  background: var(--phix-mist, #F5F3FF);
+  color: var(--phix-violet-2, #6D28D9);
+  font: inherit;
+  font-size: .9375rem;
+  font-weight: 700;
+}
+html.ua-mobile:not([data-ua-page]) .docs-table,
+html.ua-mobile:not([data-ua-page]) .docs-table thead,
+html.ua-mobile:not([data-ua-page]) .docs-table tbody,
+html.ua-mobile:not([data-ua-page]) .docs-table tr,
+html.ua-mobile:not([data-ua-page]) .docs-table th,
+html.ua-mobile:not([data-ua-page]) .docs-table td { display: block; width: auto; min-width: 0; }
+html.ua-mobile:not([data-ua-page]) .docs-table thead { display: none; }
+html.ua-mobile:not([data-ua-page]) .docs-table tr {
+  margin: 0 0 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-card, 16px);
+}
+html.ua-mobile:not([data-ua-page]) .docs-table td {
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px dashed var(--phix-mist, #F5F3FF);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html.ua-mobile:not([data-ua-page]) .docs-table td:first-child { font-weight: 700; color: var(--ink, #1E1B2E); }
+html.ua-mobile:not([data-ua-page]) .docs-pager { display: flex; flex-direction: column; gap: 10px; }
+html.ua-mobile:not([data-ua-page]) .docs-pager__link { width: 100%; min-height: 56px; }

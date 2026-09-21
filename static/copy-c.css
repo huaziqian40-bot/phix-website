@@ -1,0 +1,46 @@
+/* phix 官网「技术文档」页补充样式（2026-09-13，文案改造 C 组）
+   只放本次改造新增的类，避免与 static/site.css（其它代理维护）并行改动冲突：
+   1) .docs-figure —— 加密链路示意图（宽度自适应、窄屏不横向溢出）
+   2) .docs-content 里的表格/代码在窄屏下的长串断行 */
+
+/* ---- 加密链路示意图 ---- */
+.docs-figure {
+  margin: 22px 0 26px;
+  padding: 16px;
+  background: var(--paper, #fff);
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(154, 43, 226, .10));
+}
+.docs-figure img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+.docs-figure figcaption {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--phix-mist, #F5F3FF);
+  font-size: .875rem;
+  line-height: 1.8;
+  color: var(--ink-2, #5B5670);
+  word-break: break-word;
+}
+.docs-figure figcaption code {
+  font-size: .9em;
+  overflow-wrap: anywhere;
+}
+
+/* ---- 窄屏：图不加内边距，把宽度让给 SVG ---- */
+@media (max-width: 620px) {
+  .docs-figure { padding: 10px; margin: 18px 0 22px; }
+  .docs-figure figcaption { font-size: .8125rem; }
+}
+
+/* ---- 文档正文里的长标识符（对象名 / 信封串）在窄屏断行 ---- */
+.docs-content code,
+.docs-content td code {
+  overflow-wrap: anywhere;
+}

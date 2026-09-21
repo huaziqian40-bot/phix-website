@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#173f33">
+<title>Pinghe Launcher Web</title>
+<link rel="stylesheet" href="/static/app/app.css">
+</head>
+<body>
+
+<!-- 首屏（2026-09-20 用户要求，三端统一）：墨绿底 + 中间 logo + 一根细进度条，
+     一个字都没有，像 Mac 开机。logo 用 PHL Lite 的那个（用户指定）。 -->
+<div class="boot" id="boot">
+  <img class="boot-logo" src="/static/app/phl-lite-logo.png" alt="" aria-hidden="true">
+  <div class="boot-bar" role="progressbar" aria-label="启动进度"><i id="boot-fill"></i></div>
+</div>
+
+<!-- 未登录时的登录卡（自带，不再跳站内其它页面；账号由 PHIX 提供） -->
+<div class="login-wrap" id="loginwrap" hidden>
+  <form class="card login-card" id="login-form" autocomplete="off">
+    <div class="login-logo">Pinghe Launcher Web</div>
+    <p class="muted small">用你的账号登录，继续使用网页端。</p>
+    <p class="muted small" id="login-msg"></p>
+    <label class="field"><span>用户名</span>
+      <input type="text" id="login-user" name="username" autocomplete="username" required maxlength="64"></label>
+    <label class="field"><span>密码</span>
+      <input type="password" id="login-pass" name="password" autocomplete="current-password" required maxlength="128"></label>
+    <div class="login-actions">
+      <button class="primary" id="login-go" type="submit">登 录</button>
+      <span class="muted small" id="login-hint">账号由 PHIX 提供，与桌面客户端共用同一套账号。</span>
+    </div>
+    <p class="footnote">登录后即可查看课表、日程、课程与邮箱；网页端不会保存你的平台密码。</p>
+  </form>
+</div>
+
+<div id="app" hidden>
+
+  <aside class="sidebar" id="sidebar">
+    <!-- 左上角品牌：logo 用 PHL Lite 那张，名字是「网页版」；
+         整块（logo + 字）可点，点了回首页（用户 2026-09-20 要求）。 -->
+    <button class="logo" id="logo" type="button" title="回到首页" aria-label="回到首页">
+      <img class="logo-mark" src="/static/app/phl-lite-logo.png" alt="" aria-hidden="true">
+      <span class="logo-text">
+        <b>Pinghe Launcher Web</b>
+        <small>平和 · 学习助手</small>
+      </span>
+    </button>
+
+    <!-- 导航（窄屏由 CSS 转成顶部标签条，DOM 只有这一份）
+         id=tab-<view> 与 data-view 同源：前者给脚本/CDP 用，后者给 CSS/测试用 -->
+    <nav id="tabs" aria-label="功能切换">
+      <button class="tab" type="button" id="tab-home" data-view="home" aria-current="false">🏠 首页</button>
+      <button class="tab" type="button" id="tab-timetable" data-view="timetable" aria-current="false">📅 我的课表</button>
+      <button class="tab is-active" type="button" id="tab-schedule" data-view="schedule" aria-current="true">🗓️ 我的日程</button>
+      <button class="tab" type="button" id="tab-courses" data-view="courses" aria-current="false">📚 我的课程</button>
+      <button class="tab" type="button" id="tab-mail" data-view="mail" aria-current="false">✉️ 平和邮箱</button>
+      <button class="tab" type="button" id="tab-ai" data-view="ai" aria-current="false">🤖 Agent 助手</button>
+      <button class="tab" type="button" id="tab-settings" data-view="settings" aria-current="false">⚙️ 设置</button>
+    </nav>
+
+    <div class="side-foot" id="side-foot" hidden>
+      <div class="side-user" id="side-user">
+        <span class="side-user__name" id="who" title="当前登录用户"></span>
+        <button class="ghost ghost--dark" id="logout" type="button">退出登录</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="layout">
+    <div class="topbar" id="topbar">
+      <button class="icon-btn" id="side-toggle" type="button"
+              aria-label="显示或隐藏侧栏" aria-expanded="false">☰</button>
+      <h1 id="view-title">首页</h1>
+      <span class="topbar__spacer"></span>
+      <span class="muted small" id="top-stamp"></span>
+      <button class="primary" id="btn-refresh" type="button">↻ 刷新</button>
+    </div>
+
+    <!-- ==================== 首页 ==================== -->
+    <section class="view" id="view-home" hidden>
+      <div class="hero">
+        <div class="card clock-card">
+          <div id="home-clock" class="big-clock">--:--:--</div>
+          <div id="home-date" class="muted">加载中…</div>
+        </div>
+        <div class="hero-duo">
+          <div class="card go-card" data-go="timetable" title="查看我的课表">
+            <div class="card-title">正在上的课</div>
+            <div id="home-current" class="current-lesson">—</div>
+          </div>
+          <div class="card go-card" data-go="timetable" title="查看我的课表">
+            <div class="card-title">下一节课</div>
+            <div id="home-next" class="current-lesson">—</div>
+          </div>
+        </div>
+        <div class="card go-card" data-go="mail" title="打开平和邮箱">
+          <div class="card-title">未读邮件</div>
+          <div id="home-unread" class="big-num">–</div>
+          <div class="muted small">平和邮箱</div>
+          <div class="muted small" id="home-unread-stamp">最新数据 —</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card go-card" data-go="timetable" title="查看我的课表">
+          <div class="card-title">今天的课</div>
+          <div id="home-lessons" class="list"><div class="empty">加载中…</div></div>
+        </div>
+        <div class="card go-card" data-go="schedule" title="查看我的日程">
+          <div class="card-title">今天的日程</div>
+          <div id="home-events" class="list"><div class="empty">加载中…</div></div>
+        </div>
+      </div>
+      <div class="card go-card" data-go="courses" title="打开我的课程">
+        <div class="card-title">ManageBac · ±14 天 DDL</div>
+        <div id="home-ddl" class="list"><div class="empty">加载中…</div></div>
+        <div class="footnote">窗口：今天 −14 天 ~ 今天 +14 天（按你的本地日期算）；最近 2 天与 2 天内到期的会加粗。
+          网页端是只读的，不支持像桌面客户端那样左滑移除 DDL。</div>
+      </div>
+      <div class="inline-msg" id="home-error" hidden></div>
+      <div class="inline-msg" id="home-info" hidden></div>
+    </section>
+
+    <!-- ==================== 我的课表（版式 1:1 复制 PHL Lite 的「我的课表」）==================== -->
+    <section class="view" id="view-timetable" hidden>
+      <div class="row-tools">
+        <button class="ghost" id="tt-prev" type="button">‹ 上一周</button>
+        <button class="ghost" id="tt-this" type="button">本周</button>
+        <button class="ghost" id="tt-next" type="button">下一周 ›</button>
+        <span id="tt-range" class="muted">—</span>
+        <span id="tt-wait" class="wait-note" hidden>加载中…</span>
+        <!-- 这一行只留一个绿色「已连接」；账号名 / 教学组清单 / 条数这类细节一律不在这里说 -->
+        <span class="tt-conn" id="tt-conn" hidden><i class="tt-conn__dot"></i>已连接</span>
+        <span class="flex1"></span>
+        <button class="ghost" id="tt-pick-btn" type="button">✏️ 选择我的教学组</button>
+        <span class="tag" id="tt-cache" hidden></span>
+        <!-- 导出课表：导出的是**当前这一周、当前过滤后**的课表（与页面所见一致）。
+             菜单是站内的小下拉（不用 window.confirm/prompt）；行=星期、列=节次，
+             与页面的方向相反（用户要求「周一周二竖着，P 几横着」）。 -->
+        <div class="tt-export" id="tt-export">
+          <button class="ghost" id="tt-export-btn" type="button" aria-haspopup="menu"
+                  aria-expanded="false" aria-controls="tt-export-menu"
+                  title="导出当前显示的这一周课表">⬇ 导出课表</button>
+          <div class="tt-export__menu" id="tt-export-menu" role="menu" hidden
+               aria-labelledby="tt-export-btn">
+            <button class="tt-export__item" id="tt-export-png" type="button" role="menuitem">
+              导出图片 PNG<span class="tt-export__hint">行=星期 · 列=节次，图里画好时间和教室</span>
+            </button>
+            <button class="tt-export__item" id="tt-export-csv" type="button" role="menuitem">
+              导出表格 CSV<span class="tt-export__hint">同上方向，UTF-8 带 BOM，Excel 直接打开</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <div class="inline-msg" id="tt-error" hidden></div>
+      <div class="inline-msg" id="tt-info" hidden></div>
+      <div id="tt-body">
+        <!-- 周课表（版式与客户端的 #tt-week.tt-grid 一致；外面这层只做锚点与兼容） -->
+        <div id="tt-week" class="tt-grid"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 我的日程（周 / 月 / 年三种日历视图，版式照客户端 PHL Lite） ==================== -->
+    <section class="view" id="view-schedule">
+      <div class="row-tools">
+        <button class="ghost" id="sched-prev" type="button" title="上一个区间">‹</button>
+        <b id="sched-label" class="sched-label">—</b>
+        <button class="ghost" id="sched-next" type="button" title="下一个区间">›</button>
+        <button class="ghost" id="sched-today" type="button">今天</button>
+        <div class="seg" id="sched-views" role="group" aria-label="日历视图">
+          <button class="seg__btn is-on" id="sched-v-week" type="button" data-v="week"
+                  aria-pressed="true">周</button>
+          <button class="seg__btn" id="sched-v-month" type="button" data-v="month"
+                  aria-pressed="false">月</button>
+          <button class="seg__btn" id="sched-v-year" type="button" data-v="year"
+                  aria-pressed="false">年</button>
+        </div>
+        <span class="flex1"></span>
+        <span class="muted small" id="sched-meta"></span>
+        <button class="primary" id="sched-open" type="button">＋ 新建日程</button>
+      </div>
+      <div class="card sched-card-wrap">
+        <!-- 兼容层：屏外（绝对定位 + 1px 裁剪）保留按天分组的条目语义，
+             供既有脚本/测试与无障碍树使用；视觉上是下面这套日历，互不干扰。 -->
+        <div class="sch-compat" id="sched-compat" aria-hidden="false"></div>
+        <div class="panel__body" id="sched-body">
+          <div id="sched-hint" class="sched-hint" hidden></div>
+          <div id="sch-week" class="sch-week"></div>
+          <div id="sched-cal-scroll" class="sch-scroll">
+            <div id="sch-month" class="cal"></div>
+          </div>
+          <div id="sch-year" class="cal-year" hidden></div>
+        </div>
+      </div>
+      <div class="card sched-foot" id="sched-foot" hidden>
+        <div class="card-title">新建日程</div>
+        <form class="sched-form" id="sched-form" autocomplete="off">
+          <label class="field"><span>日期</span><input type="date" id="f-day" required></label>
+          <label class="field"><span>时间</span><input type="time" id="f-time"></label>
+          <label class="field"><span>标题</span><input type="text" id="f-title" maxlength="120" placeholder="要做什么" required></label>
+          <label class="field field--wide"><span>备注</span><input type="text" id="f-note" maxlength="200" placeholder="可选"></label>
+          <div class="sched-form__actions">
+            <button class="primary" id="sched-add" type="submit">添加</button>
+            <button class="ghost" id="sched-cancel" type="button">取消</button>
+          </div>
+        </form>
+      </div>
+      <div class="sched-foot sched-foot--closed" id="sched-foot-closed" hidden>
+        <button class="ghost" id="sched-open2" type="button">＋ 新增日程</button>
+      </div>
+    </section>
+
+    <!-- ==================== 日程：当天安排（点日历任意一天弹出）==================== -->
+    <div class="picker-overlay" id="sch-modal" hidden>
+      <div class="sch-day-card card" role="dialog" aria-modal="true" aria-labelledby="schm-title">
+        <div class="row-tools">
+          <b id="schm-title">—</b>
+          <span class="flex1"></span>
+          <button class="ghost" id="schm-close" type="button">✕ 关闭</button>
+        </div>
+        <div class="list" id="schm-list"></div>
+        <div class="row-tools" style="margin:12px 0 0">
+          <button class="primary" id="schm-add" type="button">＋ 在这一天新增日程</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 我的课程（版式 1:1 复制 PHL Lite 的「我的课程」）==================== -->
+    <section class="view" id="view-courses" hidden>
+      <div class="row-tools">
+        <b>我的课程</b>
+        <span class="flex1"></span>
+        <button class="ghost" id="mb-back" type="button" hidden>‹ 返回列表</button>
+        <span class="tag" id="mb-cache" hidden></span>
+      </div>
+      <div class="inline-msg" id="mb-error" hidden></div>
+      <div class="inline-msg" id="mb-info" hidden></div>
+      
+      <!-- 课程详情子视图 -->
+      <div id="mb-detail" hidden>
+        <div class="card">
+          <div class="card-title" id="mb-detail-title">课程详情</div>
+          <div class="panel__body" id="mb-detail-info"></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">作业与考试</div>
+            <div class="panel__body" id="mb-detail-tasks"><div class="empty">正在加载…</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">资源</div>
+            <div class="panel__body" id="mb-detail-resources"><div class="empty">正在加载…</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">成绩</div>
+          <div class="panel__body" id="mb-detail-grades"><div class="empty">正在加载…</div></div>
+        </div>
+      </div>
+      
+      <!-- 原有列表视图 -->
+      <div id="mb-list">
+      <!-- 通知、私信、讨论 -->
+      <div class="grid-3 mb-activity">
+        <div class="card">
+          <div class="card-title">📢 通知与待办</div>
+          <div class="panel__body" id="mb-notifications"><div class="empty">正在加载…</div></div>
+          <div class="footnote" id="mb-notif-foot">来自 ManageBac</div>
+        </div>
+        <div class="card">
+          <div class="card-title">💬 私信</div>
+          <div class="panel__body" id="mb-messages"><div class="empty">正在加载…</div></div>
+          <div class="footnote">来自老师或同学的私信</div>
+        </div>
+        <div class="card">
+          <div class="card-title">💡 讨论</div>
+          <div class="panel__body" id="mb-discussions"><div class="empty">正在加载…</div></div>
+          <div class="footnote">课程讨论区的最新话题</div>
+        </div>
+      </div>
+      <div class="grid-2 co-core">
+        <div class="card core-card" id="mb-core-cas" data-core="cas" role="button" tabindex="0">
+          <div class="card-title">🎨 CAS 创意 · 行动 · 服务</div>
+          <div class="muted small">IB Core · 不属于任何课程 · 点开概览 ↗</div>
+        </div>
+        <div class="card core-card" id="mb-core-ee" data-core="ee" role="button" tabindex="0">
+          <div class="card-title">📄 EE 拓展论文</div>
+          <div class="muted small">IB Core · 不属于任何课程 · 点开概览 ↗</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">作业 / 考试（含已过期）</div>
+          <div class="tools">
+            <label class="field field--inline"><span>搜索</span>
+              <input type="search" id="mb-q" placeholder="课程 / 标题 / 状态 / 分数" maxlength="60"></label>
+            <label class="field field--inline"><span>排序</span>
+              <select id="mb-sort">
+                <option value="due-asc">截止时间 · 近 → 远</option>
+                <option value="due-desc">截止时间 · 远 → 近</option>
+                <option value="course">按课程</option>
+              </select></label>
+            <span class="tools__count" id="mb-count"></span>
+          </div>
+          <div class="panel__body" id="mb-tasks"><div class="empty">正在从平台实时抓取…</div></div>
+          <div class="footnote">点作业看详情 · 已过期的在列表下方（灰底）· 搜索 / 排序只作用于这张表</div>
+        </div>
+        <div class="card">
+          <div class="card-title">课程列表（<span id="mb-courses-n">—</span> 门）</div>
+          <div class="panel__body" id="mb-courses"><div class="empty">正在从平台实时抓取…</div></div>
+          <div class="footnote">含各科总评 · 单元数 · 只读</div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ==================== 平和邮箱（版式 1:1 复制 PHL Lite 的「平和邮箱」）==================== -->
+    <section class="view" id="view-mail" hidden>
+      <div class="row-tools">
+        <b>平和邮箱</b>
+        <span class="tag" id="mail-cache" hidden></span>
+        <span class="flex1"></span>
+        <button class="ghost" id="mail-contacts-btn" type="button">👥 通讯录</button>
+        <button class="ghost" id="mail-compose-btn" type="button">✏️ 写邮件</button>
+        <button class="ghost" id="mail-close" type="button" hidden>‹ 返回列表</button>
+      </div>
+      <div class="inline-msg" id="mail-error" hidden></div>
+      <div class="mail-split" id="mail-split">
+        <div id="mail-heads" class="mail-list card"></div>
+        <div id="mail-read" class="mail-read card">
+          <div id="mail-detail">
+            <div class="empty">选择一封邮件查看</div>
+            <div class="notice">
+              <p class="notice__title">关于正文</p>
+              <p class="notice__body">另外：<strong>打开一封邮件会把它标记为已读</strong>
+                （只标记你点开的那一封，绝不会批量标记），这会同步到你的邮箱。</p>
+              <p class="notice__body">带 <strong>📎</strong> 的邮件有附件，点开正文即可下载；
+                右上角 <strong>👥 通讯录</strong> 是从你往来邮件里整理出的联系人，点一下就能写邮件给他。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">已同步的邮箱账号</div>
+        <div class="footnote">来自同步对象 <code>settings.accounts</code> · 只显示账号名，密码一律打码。</div>
+        <div class="panel__body" id="mail-body"><p class="muted">正在读取…</p></div>
+      </div>
+    </section>
+
+    <!-- ==================== 通讯录（从往来邮件里收割）==================== -->
+    <div class="picker-overlay" id="contacts-modal" hidden>
+      <div class="picker-modal card" role="dialog" aria-modal="true" aria-labelledby="contacts-title">
+        <div class="row-tools">
+          <b id="contacts-title">👥 通讯录</b>
+          <span class="flex1"></span>
+          <button class="ghost" id="contacts-close" type="button">✕ 关闭</button>
+        </div>
+        <p class="footnote" style="margin-top:0">
+          从你<strong>收件箱与已发送</strong>的邮件里整理出来的联系人，按往来次数排序。
+          点某个人直接给他写邮件。账号本身没有开放的通讯录接口，这是业界通用做法（同 Gmail / mutt）。
+        </p>
+        <div class="tools">
+          <label class="field field--inline"><span>搜索</span>
+            <input type="search" id="contacts-q" placeholder="姓名或邮箱" maxlength="60" autocomplete="off"></label>
+          <span class="tools__count" id="contacts-count"></span>
+        </div>
+        <div class="panel__body" id="contacts-list"><div class="empty">点「👥 通讯录」后开始整理…</div></div>
+      </div>
+    </div>
+
+    <!-- ==================== Agent 助手 ==================== -->
+    <section class="view" id="view-ai" hidden>
+      <div class="card">
+        <div class="card-title">能力边界</div>
+        <p class="notice__body">AI 只根据你自己同步过来的数据回答（课表、选课、ManageBac、邮件标题、日程），
+          <strong>不能修改任何数据、没有工作区/文件功能</strong>。它拿到的课表 / ManageBac / 邮件是服务器
+          <strong>实时抓取</strong>的那一份；送进去的只有邮件标题，正文不会进入 AI 上下文。</p>
+      </div>
+
+      <div class="ai-ctx">
+        <div class="ai-ctx__k">上下文</div>
+        <div class="ai-ctx__v" id="ai-ctx">还没有提问。提问后会显示这次回答用到了哪些数据、多少字符、是否被截断。</div>
+      </div>
+
+      <div class="ai-log" id="ai-log">
+        <p class="empty" id="ai-empty">还没有对话。在下面输入问题，比如「这周有哪些课」「最近有哪些作业快到截止时间」。</p>
+      </div>
+
+      <div class="ai-wait" id="ai-wait" hidden>
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="ai-wait-text">AI 正在根据你的数据思考…</span>
+        <button class="ghost" id="ai-cancel" type="button">取消</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">提问（只读查询）</div>
+        <form class="compose" id="ai-form" autocomplete="off">
+          <label class="field">
+            <span>你的问题</span>
+            <textarea id="ai-q" rows="3" maxlength="500" placeholder="用一句话提问，例如：本周三有哪些课？"></textarea>
+          </label>
+          <div class="compose__actions">
+            <button class="primary" id="ai-send" type="submit">发送</button>
+            <button class="ghost" id="ai-clear" type="button">清空对话</button>
+            <span class="compose__count" id="ai-count">历史 0 / 12 条</span>
+          </div>
+        </form>
+      </div>
+
+      <div class="ai-unconf" id="ai-unconf" hidden>
+        <p class="notice__body">还没有连接 AI：请到客户端的 <strong>设置 → AI</strong> 里配置服务商与密钥，
+          或到「个人中心 → 密码管理」添加一个服务商，配置后回到本页即可提问。</p>
+        <p class="ai-unconf__links">
+          <a class="ghost" href="/account/">去个人中心配置</a>
+          <a class="ghost" href="/download/">去下载客户端</a>
+          <button class="ghost" id="ai-fixed" type="button">我已配置好，收起</button>
+        </p>
+      </div>
+    </section>
+
+    <!-- ==================== 设置 ==================== -->
+    <section class="view" id="view-settings" hidden>
+      <div class="card">
+        <div class="card-title">账号</div>
+        <div id="set-account"><div class="empty">加载中…</div></div>
+        <div class="row-tools" style="margin-top:12px">
+          <a class="ghost" href="/account/">去个人中心管理凭据 / AI</a>
+          <button class="danger" id="set-logout" type="button">退出登录</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">已连接的平台账号</div>
+        <div class="footnote">只显示账号名，密码一律打码（来自服务器实时抓取 / 本机直连返回的 meta.accounts）。</div>
+        <div id="set-platforms"><div class="empty">加载中…</div></div>
+      </div>
+
+      <div class="card" id="set-changepw-card">
+        <div class="card-title">修改密码</div>
+        <div class="footnote">修改后其它设备需重新登录。密码长度至少 6 位。</div>
+        <div class="set-changepw-form" style="margin-top:10px">
+          <label class="field"><span>当前密码</span>
+            <input type="password" id="set-cur-pw" placeholder="当前密码" autocomplete="current-password" maxlength="128"></label>
+          <label class="field"><span>新密码</span>
+            <input type="password" id="set-new-pw" placeholder="新密码（至少 6 位）" autocomplete="new-password" maxlength="128"></label>
+          <label class="field"><span>确认新密码</span>
+            <input type="password" id="set-confirm-pw" placeholder="再次输入新密码" autocomplete="new-password" maxlength="128"></label>
+          <div class="row-tools" style="margin-top:10px">
+            <button class="primary" id="set-change-pw-btn" type="button">修改密码</button>
+            <span class="muted small" id="set-pw-msg"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="set-ai-card">
+        <div class="card-title">AI 服务商</div>
+        <div class="footnote">管理 Agent 助手使用的 AI 模型与密钥。更多设置请到 <a href="/account/">个人中心</a>。</div>
+        <div id="set-ai-providers" style="margin-top:10px"><div class="empty">加载中…</div></div>
+        <div class="row-tools" style="margin-top:12px">
+          <select id="set-ai-add-preset">
+            <option value="deepseek">DeepSeek</option>
+            <option value="kimi">Kimi (Moonshot)</option>
+            <option value="glm">智谱 GLM</option>
+            <option value="qwen">通义千问</option>
+            <option value="custom">自定义</option>
+          </select>
+          <button class="ghost" id="set-ai-add" type="button">＋ 添加服务商</button>
+        </div>
+        <div class="row-tools" style="margin-top:8px">
+          <label class="field" style="flex-direction:row;align-items:center;gap:8px"><span style="white-space:nowrap">当前使用</span>
+            <select id="set-ai-default" class="flex1" style="max-width:240px"></select>
+          </label>
+          <button class="primary" id="set-ai-save" type="button">保存 AI 服务商</button>
+          <span class="muted small" id="set-ai-msg"></span>
+        </div>
+      </div>
+
+      <!-- 技术细节（数据来源 / 同步状态 / 关于 / 账号标识）默认收在这个折叠区里，
+           普通用户不点开就看不到；需要排查时展开即可拿到全部信息。 -->
+      <details class="card diag" id="set-diag">
+        <summary class="card-title">诊断信息（数据来源 · 同步状态 · 关于）</summary>
+        <p class="footnote">平时不用看这里。只有当抓取不到数据、或要确认网页端在走哪条数据通路时再展开。</p>
+
+        <div class="diag__block">
+          <div class="card-title">数据来源</div>
+          <div id="set-source"><div class="empty">检测中…</div></div>
+        </div>
+
+        <div class="diag__block">
+          <div class="card-title">同步状态</div>
+          <div class="inline-msg" id="set-error" hidden></div>
+          <div id="set-sync"><div class="empty">加载中…</div></div>
+        </div>
+
+        <div class="diag__block">
+          <div class="card-title">关于</div>
+          <p class="notice__body">网页端与桌面客户端（Pinghe Launcher / Pinghe Launcher Lite）共用同一套账号与同步对象：
+            <code>schedule</code>、<code>settings.lessons</code>、<code>settings.accounts</code>、<code>school</code>。
+            网页端只做只读查询与日程编辑，抓取由服务器代劳，平台密码不会回传到浏览器。</p>
+        </div>
+
+        <div class="diag__block">
+          <div class="card-title">同步对象里的账号标识</div>
+          <div id="set-account-ids"><div class="empty">加载中…</div></div>
+        </div>
+      </details>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- 选课面板模态（工具栏按钮 "✏️ 选择我的教学组" 常驻弹出） -->
+<div class="picker-overlay" id="picker-overlay" hidden>
+  <div class="picker-modal card">
+    <div class="card-title">选择你的教学组</div>
+    <div class="footnote" style="margin-bottom:10px">勾选你上的课 → 保存后课表只显示这些组的课。网页端只改你自己的选课设置，不会改动学校平台上的任何数据。</div>
+    <input type="search" class="pick-filter" id="picker-filter" placeholder="搜索科目名…" maxlength="60">
+    <div class="pick-list" id="picker-list"></div>
+    <div class="row-tools" style="margin-top:12px">
+      <button class="primary" id="picker-save" type="button">保存选课</button>
+      <button class="ghost" id="picker-cancel" type="button">取消</button>
+      <span class="muted small">保存后课表立即刷新；客户端同步后也会用这份选课</span>
+    </div>
+  </div>
+</div>
+
+<!-- 撰写邮件模态 -->
+<div class="compose-overlay" id="compose-overlay" hidden>
+  <div class="compose-modal card">
+    <div class="card-title" id="compose-title">写邮件</div>
+    <div class="compose-form">
+      <label class="field"><span>收件人 <b style="color:var(--wine-700)">*</b></span>
+        <input type="text" id="compose-to" placeholder="a@example.com, b@example.com" maxlength="1000"></label>
+      <div class="compose-cc-toggle">
+        <button class="ghost" id="compose-toggle-cc" type="button" style="font-size:12px;padding:2px 8px">+ 抄送</button>
+      </div>
+      <label class="field compose-cc-row" id="compose-cc-row" hidden><span>抄送</span>
+        <input type="text" id="compose-cc" placeholder="可选" maxlength="1000"></label>
+      <label class="field"><span>主题 <b style="color:var(--wine-700)">*</b></span>
+        <input type="text" id="compose-subject" placeholder="邮件主题" maxlength="200"></label>
+      <label class="field"><span>正文 <b style="color:var(--wine-700)">*</b></span>
+        <textarea id="compose-body" rows="10" maxlength="100000" placeholder="邮件正文（纯文本）"></textarea></label>
+      <!-- 附件：原生 file 输入 + FormData 上传（文件不进 JS 内存，中文名由浏览器编码） -->
+      <div class="field compose-att">
+        <span>附件</span>
+        <div class="compose-att__row">
+          <button class="ghost" id="compose-attach-btn" type="button">📎 添加附件</button>
+          <input type="file" id="compose-attach-input" multiple hidden
+                 aria-label="选择要发送的附件">
+          <span class="muted small" id="compose-att-summary">未选择附件</span>
+        </div>
+        <div class="compose-att__list" id="compose-att-list"></div>
+      </div>
+      <input type="hidden" id="compose-reply-to" value="">
+      <div class="row-tools">
+        <button class="primary" id="compose-send" type="button">发送</button>
+        <button class="ghost" id="compose-cancel" type="button">取消</button>
+        <span class="muted small" id="compose-msg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app/app.js"></script>
+</body>
+</html>

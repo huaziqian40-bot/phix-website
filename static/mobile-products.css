@@ -1,0 +1,1145 @@
+/* ============================================================================
+   phix 手机版 · 页面层（第二批：产品三页 / PHIX 日志 / 个人中心 / 管理后台 / 登录注册）
+   见 static/mobile.css 里基础层的选择器口径。本文件只在手机 UA（或 ?mobile=1）下、
+   由 static/ua-switch.js 通过页面 <meta name="mobile-css"> 注入；桌面版永远不加载。
+   所以每条规则都写在 html.ua-mobile 之下，且**全部用 [data-ua-page="…"] 限定**。
+
+   页面标识（<html data-ua-page>）实测值（见报告「实测」一节）：
+     /products/xinlv/     → xinlv
+     /products/phl/       → phl
+     /products/hardware/  → hardware
+     /log/                → log
+     /account/            → account
+     /admin/              → admin      （/admin/users/ 等同为 admin：一级目录优先）
+     /login/              → login
+     /register/           → register
+
+   顺序
+   1) 通用：正文容器收窄 / 宽表卡片化 / 页脚色带不溢出
+   2) 产品三页（xinlv · phl · hardware）
+   3) PHIX 日志（log）
+   4) 个人中心（account）
+   5) 管理后台（admin）
+   6) 登录 / 注册（login · register）
+   注意：不覆盖 mobile.css 里已有的选择器；这里只做「加一层更具体的页面级规则」。
+   ============================================================================ */
+
+/* ---- 1. 通用 -------------------------------------------------------------- */
+
+/* 正文容器：桌面是 72px/48px 上下留白，手机上收到 26px 左右，别让一屏只剩空白 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-section,
+html.ua-mobile[data-ua-page="phl"] .deco-section,
+html.ua-mobile[data-ua-page="hardware"] .deco-section {
+  padding: 48px 18px;
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-section--tight,
+html.ua-mobile[data-ua-page="phl"] .deco-section--tight,
+html.ua-mobile[data-ua-page="hardware"] .deco-section--tight {
+  padding: 34px 18px;
+}
+
+/* 宽表在手机上**不再横向滚动**，改成一条记录一张卡（字段名/值上下排）：
+   一行 <tr> → 一张卡；每个 <td> → 卡里的一行「字段名 + 值」。
+   字段名来自表头 <th>（::before 用 nth-child 对应列号，不用改 HTML）；
+   日志表则用 JS 已经写好的 data-label，见第 3 节。 */
+html.ua-mobile .deco-table-wrap {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+html.ua-mobile[data-ua-page="xinlv"] table.deco-table,
+html.ua-mobile[data-ua-page="phl"] table.deco-table,
+html.ua-mobile[data-ua-page="hardware"] table.deco-table {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border-collapse: separate;
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-table thead,
+html.ua-mobile[data-ua-page="phl"] .deco-table thead,
+html.ua-mobile[data-ua-page="hardware"] .deco-table thead { display: none; }
+
+html.ua-mobile[data-ua-page="xinlv"] .deco-table tbody,
+html.ua-mobile[data-ua-page="phl"] .deco-table tbody,
+html.ua-mobile[data-ua-page="hardware"] .deco-table tbody { display: block; }
+
+/* 一张卡：第一条 <td> 当卡标题，其余按「字段名 / 值」上下排 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-table tbody tr,
+html.ua-mobile[data-ua-page="phl"] .deco-table tbody tr,
+html.ua-mobile[data-ua-page="hardware"] .deco-table tbody tr {
+  display: block;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  background: var(--paper, #fff);
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(154, 43, 226, .12));
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-table tbody tr:last-child,
+html.ua-mobile[data-ua-page="phl"] .deco-table tbody tr:last-child,
+html.ua-mobile[data-ua-page="hardware"] .deco-table tbody tr:last-child { margin-bottom: 0; }
+
+html.ua-mobile[data-ua-page="xinlv"] .deco-table td,
+html.ua-mobile[data-ua-page="phl"] .deco-table td,
+html.ua-mobile[data-ua-page="hardware"] .deco-table td {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: .9375rem;
+  line-height: 1.7;
+  color: var(--ink-2, #5B5670);
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-table td:first-child,
+html.ua-mobile[data-ua-page="phl"] .deco-table td:first-child,
+html.ua-mobile[data-ua-page="hardware"] .deco-table td:first-child {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--ink, #1E1B2E);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--phix-mist, #F5F3FF);
+}
+
+/* 三列表（平台 / 形态 / 状态、阶段 / 要做的事 / 状态）：第 2 列是长描述。
+   表头在手机上是 display:none（卡片自带字段名），所以中间列也要一个字段名，
+   否则这块信息会随着隐藏的表头一起丢掉：
+     · 硬件页那两处三列表表头是「阶段 / 要做的事 / 状态」→ 中间列「要做的事」
+     · 心履页是「平台 / 形态 / 状态」→ 中间列「形态」 */
+html.ua-mobile[data-ua-page="xinlv"] table.deco-table:not(.deco-table--compare) tbody td:nth-child(2)::before,
+html.ua-mobile[data-ua-page="phl"] table.deco-table:not(.deco-table--compare) tbody td:nth-child(2)::before {
+  content: "形态";
+}
+html.ua-mobile[data-ua-page="hardware"] table.deco-table:not(.deco-table--compare) tbody td:nth-child(2)::before {
+  content: "要做的事";
+}
+
+html.ua-mobile[data-ua-page="xinlv"] .deco-table td + td,
+html.ua-mobile[data-ua-page="phl"] .deco-table td + td,
+html.ua-mobile[data-ua-page="hardware"] .deco-table td + td { margin-top: 10px; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-table td + td::before,
+html.ua-mobile[data-ua-page="phl"] .deco-table td + td::before,
+html.ua-mobile[data-ua-page="hardware"] .deco-table td + td::before {
+  display: block;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--phix-violet-2, #6D28D9);
+  margin-bottom: 2px;
+}
+/* 「我该选哪个」六列对照表：列名取自表头（产品 / 主要用途 / 适合谁 / 需要的设备 /
+   是否需要账号 / 数据存在哪），逐个贴在值上方 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-table--compare td:nth-child(2)::before,
+html.ua-mobile[data-ua-page="phl"] .deco-table--compare td:nth-child(2)::before,
+html.ua-mobile[data-ua-page="hardware"] .deco-table--compare td:nth-child(2)::before { content: "主要用途"; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-table--compare td:nth-child(3)::before,
+html.ua-mobile[data-ua-page="phl"] .deco-table--compare td:nth-child(3)::before,
+html.ua-mobile[data-ua-page="hardware"] .deco-table--compare td:nth-child(3)::before { content: "适合谁"; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-table--compare td:nth-child(4)::before,
+html.ua-mobile[data-ua-page="phl"] .deco-table--compare td:nth-child(4)::before,
+html.ua-mobile[data-ua-page="hardware"] .deco-table--compare td:nth-child(4)::before { content: "需要的设备"; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-table--compare td:nth-child(5)::before,
+html.ua-mobile[data-ua-page="phl"] .deco-table--compare td:nth-child(5)::before,
+html.ua-mobile[data-ua-page="hardware"] .deco-table--compare td:nth-child(5)::before { content: "是否需要账号"; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-table--compare td:nth-child(6)::before,
+html.ua-mobile[data-ua-page="phl"] .deco-table--compare td:nth-child(6)::before,
+html.ua-mobile[data-ua-page="hardware"] .deco-table--compare td:nth-child(6)::before { content: "数据存在哪"; }
+/* 三列表：第 3 列是状态胶囊 */
+html.ua-mobile[data-ua-page="xinlv"] table.deco-table:not(.deco-table--compare) td:nth-child(3)::before,
+html.ua-mobile[data-ua-page="phl"] table.deco-table:not(.deco-table--compare) td:nth-child(3)::before,
+html.ua-mobile[data-ua-page="hardware"] table.deco-table:not(.deco-table--compare) td:nth-child(3)::before { content: "状态"; }
+
+html.ua-mobile[data-ua-page="xinlv"] .deco-status,
+html.ua-mobile[data-ua-page="phl"] .deco-status,
+html.ua-mobile[data-ua-page="hardware"] .deco-status { white-space: normal; }
+
+/* 表格后的说明文字与「我该选哪个」小字：别贴边、字号别太小 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-note,
+html.ua-mobile[data-ua-page="phl"] .deco-note,
+html.ua-mobile[data-ua-page="hardware"] .deco-note { font-size: .875rem; line-height: 1.8; max-width: none; }
+/* 正文里的行内链接（技术文档 / 下载页 / Pinghe Launcher 页…）：基础层只覆盖了少数几个
+   区块，夹在 <strong>、.deco-lead、图注 small 里的那些漏掉了 —— 实测高度只有 17–22px。
+   这里按「产品页正文里的所有链接」兜底撑到 44px（不改字号与颜色）。 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-note a,
+html.ua-mobile[data-ua-page="phl"] .deco-note a,
+html.ua-mobile[data-ua-page="hardware"] .deco-note a,
+html.ua-mobile[data-ua-page="xinlv"] .deco-lead a,
+html.ua-mobile[data-ua-page="phl"] .deco-lead a,
+html.ua-mobile[data-ua-page="hardware"] .deco-lead a,
+html.ua-mobile[data-ua-page="xinlv"] .deco-lead strong a,
+html.ua-mobile[data-ua-page="phl"] .deco-lead strong a,
+html.ua-mobile[data-ua-page="hardware"] .deco-lead strong a,
+html.ua-mobile[data-ua-page="phl"] .deco-figure__cap a,
+html.ua-mobile[data-ua-page="phl"] .deco-figure__cap small a,
+html.ua-mobile[data-ua-page="phl"] .deco-boundary__item p a,
+html.ua-mobile[data-ua-page="phl"] .deco-chain li a,
+html.ua-mobile[data-ua-page="xinlv"] .deco-privacy__item p a,
+html.ua-mobile[data-ua-page="phl"] .deco-privacy__item p a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* 页脚（黑色色带）与各窄屏容器：确保不撑破视口，红/黑色带按基础层处理 */
+html.ua-mobile .site-footer,
+html.ua-mobile .site-footer__inner,
+html.ua-mobile .log-shell,
+html.ua-mobile .deco-band__inner,
+html.ua-mobile .deco-hero__inner,
+html.ua-mobile .site-footer__copy { max-width: 100%; overflow-wrap: anywhere; }
+html.ua-mobile[data-ua-page="log"] .log-band,
+html.ua-mobile[data-ua-page="log"] .log-hero { max-width: 100%; }
+
+/* ---- 2. 产品三页 ---------------------------------------------------------- */
+
+html.ua-mobile[data-ua-page="xinlv"] .deco-hero,
+html.ua-mobile[data-ua-page="phl"] .deco-hero,
+html.ua-mobile[data-ua-page="hardware"] .deco-hero {
+  min-height: 0;
+  display: block;
+  overflow: hidden;
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-hero__inner,
+html.ua-mobile[data-ua-page="phl"] .deco-hero__inner,
+html.ua-mobile[data-ua-page="hardware"] .deco-hero__inner { padding: 30px 18px 34px; }
+
+html.ua-mobile[data-ua-page="xinlv"] .deco-hero__kicker,
+html.ua-mobile[data-ua-page="phl"] .deco-hero__kicker,
+html.ua-mobile[data-ua-page="hardware"] .deco-hero__kicker {
+  font-size: 11px;
+  letter-spacing: .12em;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+/* hero 大标题竖排：clamp 上限压到 2.05rem。长名字 "Pinghe Launcher"（15 字符）
+   在 390px 下 7vw≈27px → 15 × 0.5em ≈ 205px，远小于可用宽度，**不会折成两段**。 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-hero__title,
+html.ua-mobile[data-ua-page="phl"] .deco-hero__title,
+html.ua-mobile[data-ua-page="hardware"] .deco-hero__title {
+  font-size: clamp(1.6rem, 7vw, 2.05rem);
+  line-height: 1.16;
+  letter-spacing: -.015em;
+  text-wrap: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+html.ua-mobile[data-ua-page="xinlv"] .deco-hero__subtitle,
+html.ua-mobile[data-ua-page="phl"] .deco-hero__subtitle,
+html.ua-mobile[data-ua-page="hardware"] .deco-hero__subtitle {
+  margin-top: 14px;
+  font-size: .9375rem;
+  line-height: 1.75;
+  max-width: none;
+}
+/* hero 的两个按钮（打开网页端 / 下载客户端）：全宽竖排 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-hero__actions,
+html.ua-mobile[data-ua-page="phl"] .deco-hero__actions,
+html.ua-mobile[data-ua-page="hardware"] .deco-hero__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-top: 22px;
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-hero__actions .btn,
+html.ua-mobile[data-ua-page="phl"] .deco-hero__actions .btn,
+html.ua-mobile[data-ua-page="hardware"] .deco-hero__actions .btn { width: 100%; }
+
+html.ua-mobile[data-ua-page="xinlv"] .deco-hero__tags,
+html.ua-mobile[data-ua-page="phl"] .deco-hero__tags,
+html.ua-mobile[data-ua-page="hardware"] .deco-hero__tags { margin-top: 20px; gap: 8px; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-tag,
+html.ua-mobile[data-ua-page="phl"] .deco-tag,
+html.ua-mobile[data-ua-page="hardware"] .deco-tag {
+  font-size: .8125rem;
+  padding: 6px 14px;
+  white-space: normal;
+}
+
+/* 功能卡片 / 加密链路六步 / 隐私边界卡：一律单列整宽 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-grid,
+html.ua-mobile[data-ua-page="phl"] .deco-grid,
+html.ua-mobile[data-ua-page="hardware"] .deco-grid,
+html.ua-mobile[data-ua-page="xinlv"] .deco-privacy,
+html.ua-mobile[data-ua-page="phl"] .deco-privacy,
+html.ua-mobile[data-ua-page="hardware"] .deco-privacy,
+html.ua-mobile[data-ua-page="xinlv"] .deco-boundary,
+html.ua-mobile[data-ua-page="phl"] .deco-boundary,
+html.ua-mobile[data-ua-page="hardware"] .deco-boundary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+html.ua-mobile[data-ua-page="phl"] .deco-chain {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+html.ua-mobile[data-ua-page="phl"] .deco-chain li { padding: 16px 18px 16px 52px; }
+html.ua-mobile[data-ua-page="phl"] .deco-chain li::before { left: 16px; top: 16px; }
+
+html.ua-mobile[data-ua-page="xinlv"] .deco-card,
+html.ua-mobile[data-ua-page="phl"] .deco-card,
+html.ua-mobile[data-ua-page="hardware"] .deco-card,
+html.ua-mobile[data-ua-page="xinlv"] .deco-privacy__item,
+html.ua-mobile[data-ua-page="phl"] .deco-privacy__item,
+html.ua-mobile[data-ua-page="phl"] .deco-boundary__item { padding: 18px; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-privacy__item p,
+html.ua-mobile[data-ua-page="phl"] .deco-privacy__item p,
+html.ua-mobile[data-ua-page="phl"] .deco-boundary__item p,
+html.ua-mobile[data-ua-page="phl"] .deco-chain li,
+html.ua-mobile[data-ua-page="phl"] .deco-card__desc { font-size: .9375rem; line-height: 1.78; }
+
+/* 「先说清楚：树洞是 AI」提示框 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-callout { margin-top: 20px; padding: 18px; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-callout__title { font-size: 1rem; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-callout__list { font-size: .9375rem; line-height: 1.8; }
+
+/* 色带分隔段：高度由内容决定，左右收窄 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-band,
+html.ua-mobile[data-ua-page="phl"] .deco-band,
+html.ua-mobile[data-ua-page="hardware"] .deco-band {
+  min-height: 0;
+  display: block;
+  overflow: hidden;
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-band__inner,
+html.ua-mobile[data-ua-page="phl"] .deco-band__inner,
+html.ua-mobile[data-ua-page="hardware"] .deco-band__inner { padding: 32px 18px; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-band__title,
+html.ua-mobile[data-ua-page="phl"] .deco-band__title,
+html.ua-mobile[data-ua-page="hardware"] .deco-band__title { font-size: 1.375rem; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-band__text,
+html.ua-mobile[data-ua-page="phl"] .deco-band__text,
+html.ua-mobile[data-ua-page="hardware"] .deco-band__text { font-size: 1rem; line-height: 1.78; }
+
+/* 「怎么用」步骤：编号圆点挪到标题上方，不再靠左占位挤窄正文 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-steps,
+html.ua-mobile[data-ua-page="phl"] .deco-steps { gap: 12px; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-steps li,
+html.ua-mobile[data-ua-page="phl"] .deco-steps li {
+  display: block;
+  padding: 18px;
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-step__num,
+html.ua-mobile[data-ua-page="phl"] .deco-step__num {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 10px;
+}
+
+/* 期待清单（硬件页） */
+html.ua-mobile[data-ua-page="hardware"] .deco-wishlist li { padding: 16px 18px; }
+
+/* 加密链路 SVG（/assets/encryption-chain.svg）：整宽自适应 + 可点开放大
+   （点击放大由本文件末尾的极小 JS 段实现，见 <script> 说明） */
+html.ua-mobile[data-ua-page="phl"] .deco-figure { margin: 0 0 6px; max-width: 100%; }
+html.ua-mobile[data-ua-page="phl"] .deco-figure__img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  cursor: zoom-in;
+}
+html.ua-mobile[data-ua-page="phl"] .deco-figure__cap { font-size: .875rem; line-height: 1.75; }
+html.ua-mobile[data-ua-page="phl"] .deco-figure__cap small { font-size: .8125rem; }
+
+/* 「数据与隐私 / 这些边界」的说明与三级标题 */
+html.ua-mobile[data-ua-page="phl"] .deco-h3 { margin: 26px 0 10px; font-size: 1.125rem; }
+html.ua-mobile[data-ua-page="phl"] .deco-boundary__item h4,
+html.ua-mobile[data-ua-page="phl"] .deco-privacy__item h3 { font-size: 1rem; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-note code,
+html.ua-mobile[data-ua-page="phl"] .deco-note code,
+html.ua-mobile[data-ua-page="phl"] .deco-boundary code,
+html.ua-mobile[data-ua-page="phl"] .deco-chain code { overflow-wrap: anywhere; }
+
+/* 常见问题（<details>）：点开区域 ≥48px */
+html.ua-mobile[data-ua-page="xinlv"] .deco-faq,
+html.ua-mobile[data-ua-page="phl"] .deco-faq { gap: 10px; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-faq summary,
+html.ua-mobile[data-ua-page="phl"] .deco-faq summary {
+  min-height: 48px;
+  padding: 14px 16px;
+  font-size: 1rem;
+  line-height: 1.5;
+  align-items: flex-start;
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-faq summary::after,
+html.ua-mobile[data-ua-page="phl"] .deco-faq summary::after { margin-top: -2px; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-faq .deco-faq__body,
+html.ua-mobile[data-ua-page="phl"] .deco-faq .deco-faq__body {
+  padding: 0 16px 16px;
+  font-size: .9375rem;
+  line-height: 1.8;
+}
+
+/* 末尾 CTA：三个按钮全宽竖排 */
+html.ua-mobile[data-ua-page="xinlv"] .deco-cta,
+html.ua-mobile[data-ua-page="phl"] .deco-cta { padding: 26px 18px; }
+html.ua-mobile[data-ua-page="xinlv"] .deco-cta__actions,
+html.ua-mobile[data-ua-page="phl"] .deco-cta__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  justify-content: flex-start;
+}
+html.ua-mobile[data-ua-page="xinlv"] .deco-cta__actions .btn,
+html.ua-mobile[data-ua-page="phl"] .deco-cta__actions .btn { width: 100%; }
+
+/* ---- 3. PHIX 日志 [data-ua-page="log"] ----------------------------------- */
+/* 桌面是 日期/受理人/受理物/Before/After 五列表 + 缩略图。
+   手机版：每条记录一张卡 —— 日期 + 受理人一行、受理物一行、
+   Before / After 两张缩略图并排各占一半（点击仍开大图 <dialog>）。 */
+html.ua-mobile[data-ua-page="log"] .log-shell { padding: 0 18px 48px; }
+html.ua-mobile[data-ua-page="log"] .log-hero {
+  height: auto;
+  min-height: 0;
+  display: block;
+  overflow: hidden;
+}
+html.ua-mobile[data-ua-page="log"] .log-hero__inner { padding: 28px 18px 32px; }
+html.ua-mobile[data-ua-page="log"] .log-hero__title { font-size: clamp(1.6rem, 7vw, 2rem); }
+html.ua-mobile[data-ua-page="log"] .log-hero__subtitle { font-size: .9375rem; line-height: 1.75; }
+html.ua-mobile[data-ua-page="log"] .log-intro,
+html.ua-mobile[data-ua-page="log"] .log-section { margin-top: 30px; }
+html.ua-mobile[data-ua-page="log"] .log-intro h2,
+html.ua-mobile[data-ua-page="log"] .log-section h2 { font-size: 1.25rem; }
+html.ua-mobile[data-ua-page="log"] .log-intro p { font-size: .9375rem; line-height: 1.8; }
+html.ua-mobile[data-ua-page="log"] .log-count { font-size: .8125rem; }
+
+/* 表格 → 卡片：容器不再横向滚动 */
+html.ua-mobile[data-ua-page="log"] .log-table-wrap {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+html.ua-mobile[data-ua-page="log"] table.log-table {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  border-collapse: separate;
+  font-size: .9375rem;
+}
+html.ua-mobile[data-ua-page="log"] .log-table thead { display: none; }
+html.ua-mobile[data-ua-page="log"] .log-table tbody { display: block; }
+
+html.ua-mobile[data-ua-page="log"] .log-table tbody tr {
+  display: grid;
+  /* 两列严格等宽（1fr 1fr）。Before / After 落在第 1 / 2 列上，于是两张缩略图
+     各占一半；日期/受理人/受理物用 nth-child 显式指派网格区（见下）。
+     ⚠️ 不能用 min-content：日期那串文本的 min-content 有 93px，会把两列压成
+     93 / 213，Before 与 After 就一大一小了。 */
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "date handler"
+    "item item"
+    "before after"
+    "actions actions";
+  column-gap: 14px;
+  row-gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: var(--paper, #fff);
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 8px 24px rgba(154, 43, 226, .12));
+}
+html.ua-mobile[data-ua-page="log"] .log-table tbody tr:last-child { margin-bottom: 0; }
+
+html.ua-mobile[data-ua-page="log"] .log-table td {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+/* 日期 / 受理人 / 受理物用**列号**指派网格区（不依赖 data-label，JS 改了也不会错位）；
+   Before / After 保持默认的自动落位，正好落进 1fr 1fr 两列 = 各占一半。 */
+html.ua-mobile[data-ua-page="log"] .log-table tbody td:nth-child(1) { grid-area: date; }
+html.ua-mobile[data-ua-page="log"] .log-table tbody td:nth-child(2) { grid-area: handler; min-width: 0; }
+html.ua-mobile[data-ua-page="log"] .log-table tbody td:nth-child(3) { grid-area: item; }
+html.ua-mobile[data-ua-page="log"] .log-table tbody td:nth-child(4) { grid-area: before; }
+html.ua-mobile[data-ua-page="log"] .log-table tbody td:nth-child(5) { grid-area: after; }
+html.ua-mobile[data-ua-page="log"] .log-table tbody td.log-col-actions { grid-area: actions; }
+/* 日期 + 受理人同一行（日期正常字重、受理人弱化） */
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="日期"] {
+  grid-area: date;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink, #1E1B2E);
+  white-space: nowrap;
+}
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="受理人"] {
+  grid-area: handler;
+  align-self: center;
+  font-size: .875rem;
+  color: var(--ink-2, #5B5670);
+}
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="受理人"]::before { content: "受理人 "; opacity: .75; }
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="受理物"] {
+  grid-area: item;
+  padding-top: 10px;
+  border-top: 1px solid var(--phix-mist, #F5F3FF);
+  color: var(--ink, #1E1B2E);
+  line-height: 1.65;
+}
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="受理物"]::before {
+  content: "受理物";
+  display: block;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--phix-violet-2, #6D28D9);
+  margin-bottom: 2px;
+}
+/* Before / After：并排、各占一半 */
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="Before"] { grid-area: before; }
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="After"] { grid-area: after; }
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="Before"]::before,
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="After"]::before {
+  display: block;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--phix-violet-2, #6D28D9);
+  margin-bottom: 4px;
+}
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="Before"]::before { content: "Before 维修前"; }
+html.ua-mobile[data-ua-page="log"] .log-table td[data-label="After"]::before { content: "After 维修后"; }
+html.ua-mobile[data-ua-page="log"] .log-thumb-btn {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+html.ua-mobile[data-ua-page="log"] .log-thumb {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+}
+/* 「—」（没有图）也占住一半宽度，两张缩略图才对得齐 */
+html.ua-mobile[data-ua-page="log"] .log-na {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 72px;
+  border: 1px dashed var(--phix-lilac, #C4B5FD);
+  border-radius: 10px;
+  background: var(--phix-mist, #F5F3FF);
+  color: var(--ink-2, #5B5670);
+}
+/* 操作列（仅 staff）：整宽 44px+ 的删除按钮 */
+html.ua-mobile[data-ua-page="log"] .log-table td.log-col-actions { grid-area: actions; width: auto; }
+html.ua-mobile[data-ua-page="log"] .log-del {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  font-size: .875rem;
+}
+/* 空状态 */
+html.ua-mobile[data-ua-page="log"] .log-empty { padding: 28px 18px; font-size: .9375rem; }
+
+/* 新增记录表单：「我要登记」按钮与登录态表单整宽 */
+html.ua-mobile[data-ua-page="log"] .log-form { padding: 18px; gap: 16px; }
+html.ua-mobile[data-ua-page="log"] .log-form__grid,
+html.ua-mobile[data-ua-page="log"] .log-form__imgs {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+html.ua-mobile[data-ua-page="log"] .log-form__item { grid-column: auto; }
+html.ua-mobile[data-ua-page="log"] .log-form .field input,
+html.ua-mobile[data-ua-page="log"] .log-form .field select {
+  width: 100%;
+  height: auto;
+  min-height: 46px;
+  font-size: 16px;              /* 16px：防 iOS 聚焦时自动放大页面 */
+}
+html.ua-mobile[data-ua-page="log"] .log-form .field input[type="file"] {
+  padding: 11px 12px;
+  background: var(--phix-mist, #F5F3FF);
+}
+html.ua-mobile[data-ua-page="log"] .log-preview__img { max-width: 100%; height: auto; }
+html.ua-mobile[data-ua-page="log"] .log-form__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+html.ua-mobile[data-ua-page="log"] .log-form__foot .btn { width: 100%; }
+html.ua-mobile[data-ua-page="log"] #log-login-cta {
+  padding: 22px 18px;
+  align-items: stretch;
+}
+html.ua-mobile[data-ua-page="log"] #log-login-cta .btn { width: 100%; }
+
+/* 大图对话框：手机上几乎占满屏，关闭按钮 ≥44px */
+html.ua-mobile[data-ua-page="log"] .log-dialog {
+  max-width: 96vw;
+  max-height: 88dvh;
+}
+html.ua-mobile[data-ua-page="log"] .log-dialog img {
+  max-width: 96vw;
+  max-height: 88dvh;
+  width: auto;
+  height: auto;
+}
+html.ua-mobile[data-ua-page="log"] .log-dialog__close {
+  top: 8px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+}
+/* 页尾装饰色带：矮一点，别吃掉一整屏 */
+html.ua-mobile[data-ua-page="log"] .log-band { margin-top: 32px; height: 140px; }
+
+/* ---- 4. 个人中心 [data-ua-page="account"] -------------------------------- */
+/* 左侧标签 → 顶部：上面一行是头像 + 用户名，下面一条横向可滚动的标签条 */
+html.ua-mobile[data-ua-page="account"] .account {
+  display: block;
+  padding: 18px 18px 48px;
+}
+html.ua-mobile[data-ua-page="account"] .account__side {
+  position: static;
+  top: auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 0 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+/* 头像 36×36（没设置头像时 <img> 没有 src，高度会是 4px，这里钉死高度免得扁成一条） */
+html.ua-mobile[data-ua-page="account"] .account__avatar {
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  flex: none;
+}
+/* 用户名最多 104px，长了就省略号 —— 否则长用户名（如 authshot479934）会把两个标签
+   挤到第二行，标签条变成「一标签一行」（实测过的坑）。 */
+html.ua-mobile[data-ua-page="account"] .account__user {
+  margin: 0;
+  font-size: .9375rem;
+  flex: 0 1 auto;
+  max-width: 104px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* 横向可滚动标签条，与头像/用户名同一行（不换行；一行放不下时整条可横滑）。
+   ⚠️ 桌面规则 .account__tab 有 width:100%，会把每个标签拉成整宽、各占一行，
+   这里必须显式 width:auto 才收得住。 */
+html.ua-mobile[data-ua-page="account"] .account__tab {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 46px;
+  padding: 12px 10px;
+  font-size: .875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-align: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 3px solid transparent;
+}
+html.ua-mobile[data-ua-page="account"] .account__tab.is-active {
+  background: var(--phix-mist, #F5F3FF);
+  color: var(--phix-violet-2, #6D28D9);
+  border-bottom-color: var(--phix-violet, #9A2BE2);
+}
+
+html.ua-mobile[data-ua-page="account"] .account__main { min-width: 0; }
+html.ua-mobile[data-ua-page="account"] .account__panel {
+  padding: 18px 16px;
+  box-shadow: none;
+}
+html.ua-mobile[data-ua-page="account"] .account__title { font-size: 1.125rem; margin-bottom: 16px; }
+html.ua-mobile[data-ua-page="account"] .account__panel form {
+  max-width: none;
+  gap: 18px;
+}
+html.ua-mobile[data-ua-page="account"] .field label { font-size: .9375rem; }
+html.ua-mobile[data-ua-page="account"] .field input,
+html.ua-mobile[data-ua-page="account"] .field select {
+  width: 100%;
+  height: auto;
+  min-height: 46px;
+  font-size: 16px;              /* 16px：防 iOS 聚焦放大 */
+}
+html.ua-mobile[data-ua-page="account"] .account__panel form > .btn,
+html.ua-mobile[data-ua-page="account"] #phix-pass-form .btn { width: 100%; }
+html.ua-mobile[data-ua-page="account"] #phix-pass-form { max-width: none; }
+
+/* 四个凭据区（邮箱 / ManageBac / Edupage / AI 服务商）：每个字段上下排、整宽。
+   注意：这些 <input> 与 .cred-row 的 flex/宽度是 JS 写在 style="" 里的，
+   行内样式优先级高于任何选择器，所以下面用 !important 才压得住。 */
+html.ua-mobile[data-ua-page="account"] .cred-section { padding-bottom: 18px; margin-bottom: 18px; }
+html.ua-mobile[data-ua-page="account"] .cred-section__title { font-size: .9375rem; }
+html.ua-mobile[data-ua-page="account"] .cred-row {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+  margin-bottom: 14px !important;
+}
+html.ua-mobile[data-ua-page="account"] .cred-row__label {
+  width: auto !important;
+  font-size: .875rem;
+  line-height: 1.5;
+}
+html.ua-mobile[data-ua-page="account"] .cred-row input,
+html.ua-mobile[data-ua-page="account"] .cred-row select,
+html.ua-mobile[data-ua-page="account"] .cred-row textarea,
+html.ua-mobile[data-ua-page="account"] .ai-provider input,
+html.ua-mobile[data-ua-page="account"] .ai-provider select {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: none !important;
+  height: auto !important;
+  min-height: 46px;
+  font-size: 16px;              /* 16px：防 iOS 聚焦放大 */
+  font-family: var(--font-sans, sans-serif);
+}
+html.ua-mobile[data-ua-page="account"] .cred-row .btn.cred-save { width: 100%; }
+/* 眼睛按钮：44px 触摸目标，靠右贴住输入框 */
+html.ua-mobile[data-ua-page="account"] .cred-row .pw-toggle,
+html.ua-mobile[data-ua-page="account"] .ai-provider .pw-toggle {
+  align-self: flex-end;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin-top: -4px;
+  font-size: 18px;
+  line-height: 1;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-btn, 10px);
+  background: var(--phix-mist, #F5F3FF);
+}
+
+/* AI 服务商卡片：整宽；「默认用这个」与「删除」≥44px */
+html.ua-mobile[data-ua-page="account"] .ai-provider { padding: 14px !important; }
+html.ua-mobile[data-ua-page="account"] .ai-provider > div:first-child {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+html.ua-mobile[data-ua-page="account"] .ai-provider > div:first-child > label {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 2px;
+  font-size: .9375rem;
+}
+html.ua-mobile[data-ua-page="account"] .ai-provider input[type="radio"] {
+  width: 22px !important;
+  height: 22px !important;
+  min-height: 0;
+  flex: none !important;
+}
+html.ua-mobile[data-ua-page="account"] .ai-provider > div:first-child .btn[data-ai-remove] {
+  margin-left: auto !important;
+  min-height: 44px;
+  padding: 0 16px;
+  /* 换行后别把整行吃满（实测 flex-wrap 下会撑到 290px），留出呼吸感 */
+  max-width: 45%;
+}
+/* 「＋ 添加一个服务商 / 保存 AI 配置」：两个按钮全宽竖排 */
+html.ua-mobile[data-ua-page="account"] #ai-provider-list + div {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+html.ua-mobile[data-ua-page="account"] #ai-provider-list + div .btn { width: 100%; }
+html.ua-mobile[data-ua-page="account"] .msg-success,
+html.ua-mobile[data-ua-page="account"] .msg-error,
+html.ua-mobile[data-ua-page="account"] #ai-cred-msg { line-height: 1.7; }
+
+/* ---- 5. 管理后台 [data-ua-page="admin"|"users"|"content"|"feedback"] ------- */
+/* 后台四页（概览 / 用户管理 / 页面文字 / 反馈收件箱）的样式都写在各页 <head> 的
+   <style> 里，选择器都很浅（单类），所以用 html.ua-mobile[data-ua-page=…] 就能稳稳
+   盖住，不用改后面的 HTML 结构。
+   ⚠️ 实测页面键是**路径最后一段**，不是统一的 admin：
+     /admin/ → admin    /admin/users/ → users
+     /admin/content/ → content    /admin/feedback/ → feedback
+   所以这一节每条规则都把四个键并列写全（K = 四个页面键）。 */
+
+/* 骨架：容器与导航 */
+html.ua-mobile[data-ua-page="admin"] .admin-layout,
+html.ua-mobile[data-ua-page="users"] .admin-layout,
+html.ua-mobile[data-ua-page="content"] .admin-layout,
+html.ua-mobile[data-ua-page="feedback"] .admin-layout { padding: 20px 16px 40px; }
+
+html.ua-mobile[data-ua-page="admin"] .admin-header,
+html.ua-mobile[data-ua-page="users"] .admin-header,
+html.ua-mobile[data-ua-page="content"] .admin-header,
+html.ua-mobile[data-ua-page="feedback"] .admin-header {
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+html.ua-mobile[data-ua-page="admin"] .admin-header h1,
+html.ua-mobile[data-ua-page="users"] .admin-header h1,
+html.ua-mobile[data-ua-page="content"] .admin-header h1,
+html.ua-mobile[data-ua-page="feedback"] .admin-header h1 { font-size: 1.25rem; }
+
+/* 后台导航：一排小胶囊 → 整宽竖排按钮（每个 ≥46px） */
+html.ua-mobile[data-ua-page="admin"] .admin-nav,
+html.ua-mobile[data-ua-page="users"] .admin-nav,
+html.ua-mobile[data-ua-page="content"] .admin-nav,
+html.ua-mobile[data-ua-page="feedback"] .admin-nav {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+html.ua-mobile[data-ua-page="admin"] .admin-nav a,
+html.ua-mobile[data-ua-page="users"] .admin-nav a,
+html.ua-mobile[data-ua-page="content"] .admin-nav a,
+html.ua-mobile[data-ua-page="feedback"] .admin-nav a {
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 16px;
+  font-size: .9375rem;
+}
+
+html.ua-mobile[data-ua-page="admin"] .admin-card,
+html.ua-mobile[data-ua-page="users"] .admin-card,
+html.ua-mobile[data-ua-page="content"] .admin-card,
+html.ua-mobile[data-ua-page="feedback"] .admin-card {
+  padding: 16px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+html.ua-mobile[data-ua-page="admin"] .admin-card h2,
+html.ua-mobile[data-ua-page="users"] .admin-card h2,
+html.ua-mobile[data-ua-page="content"] .admin-card h2,
+html.ua-mobile[data-ua-page="feedback"] .admin-card h2 { font-size: 1.0625rem; }
+html.ua-mobile[data-ua-page="admin"] .admin-card table,
+html.ua-mobile[data-ua-page="users"] .admin-card table,
+html.ua-mobile[data-ua-page="content"] .admin-card table,
+html.ua-mobile[data-ua-page="feedback"] .admin-card table { max-width: 100%; }
+
+/* 后台所有小按钮（.btn-xs）统一到 ≥44px 触摸目标 */
+html.ua-mobile[data-ua-page="admin"] .btn-xs,
+html.ua-mobile[data-ua-page="users"] .btn-xs,
+html.ua-mobile[data-ua-page="content"] .btn-xs,
+html.ua-mobile[data-ua-page="feedback"] .btn-xs {
+  min-height: 44px;
+  height: auto;
+  padding: 10px 14px;
+  font-size: .8125rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 概览：快速入口单列（每项 ≥64px） */
+html.ua-mobile[data-ua-page="admin"] .stat-grid,
+html.ua-mobile[data-ua-page="users"] .stat-grid,
+html.ua-mobile[data-ua-page="content"] .stat-grid,
+html.ua-mobile[data-ua-page="feedback"] .stat-grid { grid-template-columns: 1fr; gap: 12px; }
+html.ua-mobile[data-ua-page="admin"] .stat-item,
+html.ua-mobile[data-ua-page="users"] .stat-item,
+html.ua-mobile[data-ua-page="content"] .stat-item,
+html.ua-mobile[data-ua-page="feedback"] .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 14px 16px;
+  text-align: left;
+}
+html.ua-mobile[data-ua-page="admin"] .stat-item .num,
+html.ua-mobile[data-ua-page="users"] .stat-item .num,
+html.ua-mobile[data-ua-page="content"] .stat-item .num,
+html.ua-mobile[data-ua-page="feedback"] .stat-item .num { font-size: 1.5rem; }
+html.ua-mobile[data-ua-page="admin"] .stat-item .label,
+html.ua-mobile[data-ua-page="users"] .stat-item .label,
+html.ua-mobile[data-ua-page="content"] .stat-item .label,
+html.ua-mobile[data-ua-page="feedback"] .stat-item .label { margin-top: 0; }
+
+/* 用户管理：6 列表（ID/用户名/角色/状态/注册时间/操作）→ 每行一卡。
+   字段名取自表头（nth-child 对应列号，不用改 HTML）；
+   min-width:0 + overflow-wrap 是必须的：6 列桌面宽度会顶出横向滚动条。 */
+html.ua-mobile[data-ua-page="admin"] table.user-table,
+html.ua-mobile[data-ua-page="users"] table.user-table,
+html.ua-mobile[data-ua-page="content"] table.user-table,
+html.ua-mobile[data-ua-page="feedback"] table.user-table {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  table-layout: fixed;
+}
+html.ua-mobile[data-ua-page="admin"] .user-table thead,
+html.ua-mobile[data-ua-page="users"] .user-table thead,
+html.ua-mobile[data-ua-page="content"] .user-table thead,
+html.ua-mobile[data-ua-page="feedback"] .user-table thead { display: none; }
+html.ua-mobile[data-ua-page="admin"] .user-table tbody,
+html.ua-mobile[data-ua-page="users"] .user-table tbody,
+html.ua-mobile[data-ua-page="content"] .user-table tbody,
+html.ua-mobile[data-ua-page="feedback"] .user-table tbody { display: block; }
+html.ua-mobile[data-ua-page="admin"] .user-table tr,
+html.ua-mobile[data-ua-page="users"] .user-table tr,
+html.ua-mobile[data-ua-page="content"] .user-table tr,
+html.ua-mobile[data-ua-page="feedback"] .user-table tr {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: 12px;
+  background: var(--phix-mist, #F5F3FF);
+}
+html.ua-mobile[data-ua-page="admin"] .user-table tr:last-child,
+html.ua-mobile[data-ua-page="users"] .user-table tr:last-child,
+html.ua-mobile[data-ua-page="content"] .user-table tr:last-child,
+html.ua-mobile[data-ua-page="feedback"] .user-table tr:last-child { margin-bottom: 0; }
+html.ua-mobile[data-ua-page="admin"] .user-table td,
+html.ua-mobile[data-ua-page="users"] .user-table td,
+html.ua-mobile[data-ua-page="content"] .user-table td,
+html.ua-mobile[data-ua-page="feedback"] .user-table td {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: auto;
+  max-width: 100%;
+  padding: 7px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(196, 181, 253, .45);
+  font-size: .9375rem;
+  overflow-wrap: anywhere;
+}
+html.ua-mobile[data-ua-page="admin"] .user-table td:last-child,
+html.ua-mobile[data-ua-page="users"] .user-table td:last-child,
+html.ua-mobile[data-ua-page="content"] .user-table td:last-child,
+html.ua-mobile[data-ua-page="feedback"] .user-table td:last-child { border-bottom: 0; }
+html.ua-mobile[data-ua-page="admin"] .user-table td::before,
+html.ua-mobile[data-ua-page="users"] .user-table td::before,
+html.ua-mobile[data-ua-page="content"] .user-table td::before,
+html.ua-mobile[data-ua-page="feedback"] .user-table td::before {
+  flex: none;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--phix-violet-2, #6D28D9);
+}
+html.ua-mobile[data-ua-page="admin"] .user-table td:nth-child(1)::before,
+html.ua-mobile[data-ua-page="users"] .user-table td:nth-child(1)::before,
+html.ua-mobile[data-ua-page="content"] .user-table td:nth-child(1)::before,
+html.ua-mobile[data-ua-page="feedback"] .user-table td:nth-child(1)::before { content: "ID"; }
+html.ua-mobile[data-ua-page="admin"] .user-table td:nth-child(2)::before,
+html.ua-mobile[data-ua-page="users"] .user-table td:nth-child(2)::before,
+html.ua-mobile[data-ua-page="content"] .user-table td:nth-child(2)::before,
+html.ua-mobile[data-ua-page="feedback"] .user-table td:nth-child(2)::before { content: "用户名"; }
+html.ua-mobile[data-ua-page="admin"] .user-table td:nth-child(3)::before,
+html.ua-mobile[data-ua-page="users"] .user-table td:nth-child(3)::before,
+html.ua-mobile[data-ua-page="content"] .user-table td:nth-child(3)::before,
+html.ua-mobile[data-ua-page="feedback"] .user-table td:nth-child(3)::before { content: "角色"; }
+html.ua-mobile[data-ua-page="admin"] .user-table td:nth-child(4)::before,
+html.ua-mobile[data-ua-page="users"] .user-table td:nth-child(4)::before,
+html.ua-mobile[data-ua-page="content"] .user-table td:nth-child(4)::before,
+html.ua-mobile[data-ua-page="feedback"] .user-table td:nth-child(4)::before { content: "状态"; }
+html.ua-mobile[data-ua-page="admin"] .user-table td:nth-child(5)::before,
+html.ua-mobile[data-ua-page="users"] .user-table td:nth-child(5)::before,
+html.ua-mobile[data-ua-page="content"] .user-table td:nth-child(5)::before,
+html.ua-mobile[data-ua-page="feedback"] .user-table td:nth-child(5)::before { content: "注册时间"; }
+html.ua-mobile[data-ua-page="admin"] .user-table td:nth-child(6)::before,
+html.ua-mobile[data-ua-page="users"] .user-table td:nth-child(6)::before,
+html.ua-mobile[data-ua-page="content"] .user-table td:nth-child(6)::before,
+html.ua-mobile[data-ua-page="feedback"] .user-table td:nth-child(6)::before { content: none; }
+/* 操作列（JS 里写死 style="display:flex;gap:4px"）：两个按钮并排、各占一半、≥44px */
+html.ua-mobile[data-ua-page="admin"] .user-table td:last-child,
+html.ua-mobile[data-ua-page="users"] .user-table td:last-child,
+html.ua-mobile[data-ua-page="content"] .user-table td:last-child,
+html.ua-mobile[data-ua-page="feedback"] .user-table td:last-child {
+  display: flex !important;
+  flex-direction: row;
+  justify-content: stretch;
+  gap: 8px !important;
+  margin-top: 4px;
+}
+html.ua-mobile[data-ua-page="admin"] .user-table td:last-child .btn-xs,
+html.ua-mobile[data-ua-page="users"] .user-table td:last-child .btn-xs,
+html.ua-mobile[data-ua-page="content"] .user-table td:last-child .btn-xs,
+html.ua-mobile[data-ua-page="feedback"] .user-table td:last-child .btn-xs { flex: 1; }
+
+/* 页面文字编辑：三列（key / 文本域 / 按钮）→ 上下排，文本域 16px 防 iOS 放大 */
+html.ua-mobile[data-ua-page="admin"] .cms-row,
+html.ua-mobile[data-ua-page="users"] .cms-row,
+html.ua-mobile[data-ua-page="content"] .cms-row,
+html.ua-mobile[data-ua-page="feedback"] .cms-row { display: block; padding: 14px 0; }
+html.ua-mobile[data-ua-page="admin"] .cms-key,
+html.ua-mobile[data-ua-page="users"] .cms-key,
+html.ua-mobile[data-ua-page="content"] .cms-key,
+html.ua-mobile[data-ua-page="feedback"] .cms-key { padding-top: 0; font-size: .75rem; }
+html.ua-mobile[data-ua-page="admin"] .cms-field textarea,
+html.ua-mobile[data-ua-page="users"] .cms-field textarea,
+html.ua-mobile[data-ua-page="content"] .cms-field textarea,
+html.ua-mobile[data-ua-page="feedback"] .cms-field textarea {
+  width: 100%;
+  min-height: 84px;
+  font-size: 16px;
+}
+html.ua-mobile[data-ua-page="admin"] .cms-field .default-hint,
+html.ua-mobile[data-ua-page="users"] .cms-field .default-hint,
+html.ua-mobile[data-ua-page="content"] .cms-field .default-hint,
+html.ua-mobile[data-ua-page="feedback"] .cms-field .default-hint { font-size: .75rem; }
+html.ua-mobile[data-ua-page="admin"] .cms-actions,
+html.ua-mobile[data-ua-page="users"] .cms-actions,
+html.ua-mobile[data-ua-page="content"] .cms-actions,
+html.ua-mobile[data-ua-page="feedback"] .cms-actions { display: flex; gap: 8px; padding-top: 10px; }
+html.ua-mobile[data-ua-page="admin"] .cms-actions .btn-xs,
+html.ua-mobile[data-ua-page="users"] .cms-actions .btn-xs,
+html.ua-mobile[data-ua-page="content"] .cms-actions .btn-xs,
+html.ua-mobile[data-ua-page="feedback"] .cms-actions .btn-xs { flex: 1; }
+
+/* 反馈收件箱：条目上下排、按钮整宽 ≥44px */
+html.ua-mobile[data-ua-page="admin"] .fb-item,
+html.ua-mobile[data-ua-page="users"] .fb-item,
+html.ua-mobile[data-ua-page="content"] .fb-item,
+html.ua-mobile[data-ua-page="feedback"] .fb-item { padding: 16px 0; }
+html.ua-mobile[data-ua-page="admin"] .fb-meta,
+html.ua-mobile[data-ua-page="users"] .fb-meta,
+html.ua-mobile[data-ua-page="content"] .fb-meta,
+html.ua-mobile[data-ua-page="feedback"] .fb-meta { gap: 8px; }
+html.ua-mobile[data-ua-page="admin"] .fb-desc,
+html.ua-mobile[data-ua-page="users"] .fb-desc,
+html.ua-mobile[data-ua-page="content"] .fb-desc,
+html.ua-mobile[data-ua-page="feedback"] .fb-desc { font-size: .9375rem; line-height: 1.75; }
+html.ua-mobile[data-ua-page="admin"] .fb-actions,
+html.ua-mobile[data-ua-page="users"] .fb-actions,
+html.ua-mobile[data-ua-page="content"] .fb-actions,
+html.ua-mobile[data-ua-page="feedback"] .fb-actions { flex-direction: column; align-items: stretch; }
+html.ua-mobile[data-ua-page="admin"] .fb-actions .btn-xs,
+html.ua-mobile[data-ua-page="users"] .fb-actions .btn-xs,
+html.ua-mobile[data-ua-page="content"] .fb-actions .btn-xs,
+html.ua-mobile[data-ua-page="feedback"] .fb-actions .btn-xs { width: 100%; }
+
+
+/* ---- 5.5 加密链路看大图（static/mobile-products.js 包出来的 <details>）------ */
+html.ua-mobile[data-ua-page="phl"] .phix-zoom { display: block; }
+html.ua-mobile[data-ua-page="phl"] .phix-zoom > summary.phix-zoom__hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  list-style: none;
+  cursor: zoom-in;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--phix-violet-2, #6D28D9);
+  background: var(--phix-mist, #F5F3FF);
+  border: 1px solid var(--phix-lilac, #C4B5FD);
+  border-radius: var(--radius-btn, 10px);
+}
+html.ua-mobile[data-ua-page="phl"] .phix-zoom > summary.phix-zoom__hint::-webkit-details-marker { display: none; }
+html.ua-mobile[data-ua-page="phl"] .phix-zoom > summary.phix-zoom__hint::after {
+  content: "＋";
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+html.ua-mobile[data-ua-page="phl"] .phix-zoom[open] > summary.phix-zoom__hint { cursor: zoom-out; }
+html.ua-mobile[data-ua-page="phl"] .phix-zoom[open] > summary.phix-zoom__hint::after { content: "－"; }
+/* 展开后：图片放大到 1.5 倍宽（390px 下 354px → 531px，链路上的小字才看得清），
+   容器横向可滚、页面本身不溢出（实测 sw == iw == 390）。
+   ⚠️ 这里的 max-width 必须 !important：<img> 上带着页面写死的行内
+   `style="max-width:100%; height:auto;"`，行内声明在层叠里高于任何非 !important 规则
+   —— 实测不加 !important 时展开后仍是 354px（styleAttr 把计算值钉回 100%），加了才 531px。 */
+html.ua-mobile[data-ua-page="phl"] .phix-zoom .deco-figure {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+html.ua-mobile[data-ua-page="phl"] .phix-zoom[open] > .deco-figure > img.deco-figure__img {
+  width: 150% !important;
+  max-width: none !important;
+  height: auto;
+}
+
+/* ---- 6. 登录 / 注册 [data-ua-page="login" | "register"] ------------------- */
+/* 这两页由另一位代理挂 ua-switch.js（本批不动它们的 <head>），所以样式先在这里备好。 */
+html.ua-mobile[data-ua-page="login"] .auth-page,
+html.ua-mobile[data-ua-page="register"] .auth-page {
+  min-height: 0;
+  padding: 26px 18px 40px;
+  display: block;
+}
+html.ua-mobile[data-ua-page="login"] .auth-card,
+html.ua-mobile[data-ua-page="register"] .auth-card {
+  width: 100%;
+  max-width: 100%;
+  padding: 26px 18px;
+}
+html.ua-mobile[data-ua-page="login"] .auth-card__title,
+html.ua-mobile[data-ua-page="register"] .auth-card__title { font-size: 1.375rem; }
+html.ua-mobile[data-ua-page="login"] .auth-card__hint,
+html.ua-mobile[data-ua-page="register"] .auth-card__hint { font-size: .875rem; line-height: 1.7; }
+html.ua-mobile[data-ua-page="login"] .auth-card form,
+html.ua-mobile[data-ua-page="register"] .auth-card form { gap: 14px; }
+html.ua-mobile[data-ua-page="login"] .auth-card .field input,
+html.ua-mobile[data-ua-page="register"] .auth-card .field input,
+html.ua-mobile[data-ua-page="login"] .auth-card .field select,
+html.ua-mobile[data-ua-page="register"] .auth-card .field select {
+  width: 100%;
+  height: auto;
+  min-height: 46px;
+  font-size: 16px;              /* 16px：防 iOS 聚焦放大 */
+}
+html.ua-mobile[data-ua-page="login"] .auth-card .btn,
+html.ua-mobile[data-ua-page="register"] .auth-card .btn { width: 100%; }
+html.ua-mobile[data-ua-page="login"] .auth-card__switch,
+html.ua-mobile[data-ua-page="register"] .auth-card__switch {
+  font-size: .875rem;
+  line-height: 1.8;
+  margin-top: 16px;
+}
+html.ua-mobile[data-ua-page="login"] .auth-card__switch a,
+html.ua-mobile[data-ua-page="register"] .auth-card__switch a { overflow-wrap: anywhere; }
+
+/* ---- 7. 横屏（手机横放）：别让 hero 与色带吃掉整屏 ----------------------- */
+@media (orientation: landscape) and (max-height: 480px) {
+  html.ua-mobile[data-ua-page="xinlv"] .deco-hero__inner,
+  html.ua-mobile[data-ua-page="phl"] .deco-hero__inner,
+  html.ua-mobile[data-ua-page="hardware"] .deco-hero__inner { padding: 20px 18px 24px; }
+  html.ua-mobile[data-ua-page="log"] .log-hero__inner { padding: 18px; }
+  html.ua-mobile[data-ua-page="log"] .log-band { height: 100px; }
+}

@@ -1,0 +1,191 @@
+/* 「关于我们」页样式（2026-09-13）
+   版式参照用户提供的参考图：左侧文字、右侧整块风景图（紫色色罩）。
+   单独成文件是为了避免与其它代理并行改 static/site.css 冲突。 */
+
+.about-page {
+  /* 撑满首屏：页面不空，且页脚仍在折线之下（site.css 里 body > main 的规则也生效） */
+  min-height: calc(100dvh - 64px);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #fff 0%, var(--phix-mist, #F5F3FF) 62%, #fff 100%);
+}
+
+/* ---- 左文右图 ---- */
+.about-split {
+  flex: 1 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+  /* 2026-09-13 用户反馈：图片要和文字块差不多大 → 让右列跟随左侧文字的高度（stretch） */
+  align-items: stretch;
+  gap: clamp(32px, 4.5vw, 72px);
+  padding: clamp(40px, 6vw, 88px) clamp(20px, 5vw, 96px);
+  width: 100%;
+}
+
+.about-split__text { max-width: 640px; }
+
+.about-split__text h1 {
+  margin: 0 0 20px;
+  font-size: clamp(2rem, 3.4vw, 2.875rem);
+  line-height: 1.15;
+  letter-spacing: -.01em;
+  color: var(--ink, #1b1526);
+}
+
+.about-split__text h2 {
+  margin: 40px 0 14px;
+  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  line-height: 1.25;
+  color: var(--ink, #1b1526);
+}
+
+.about-split__text p {
+  margin: 0 0 18px;
+  font-size: 1.0625rem;
+  line-height: 1.95;
+  color: var(--ink-2, #4a4358);
+}
+
+.about-values {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.about-values li {
+  position: relative;
+  margin: 0 0 12px;
+  padding-left: 20px;
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  color: var(--ink, #1b1526);
+}
+.about-values li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .72em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--phix-violet, #9A2BE2), var(--phix-violet-2, #6D28D9));
+}
+
+.about-contact a {
+  color: var(--phix-violet-2, #6D28D9);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---- 右侧整块风景图 + 紫色色罩 ---- */
+.about-split__media {
+  position: relative;
+  margin: 0;
+  /* 2026-09-13 第二轮用户反馈：上一版压得太小;
+     现在①高度跟随左侧文字块（align-items:stretch + height:100%）
+          ②整体往中间收一点点（右侧留白），不再贴着页面右边缘 */
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+  max-height: none;
+  margin-right: clamp(0px, 3.5vw, 64px);
+  border-radius: var(--radius-card, 16px);
+  overflow: hidden;
+  /* 图片本身做成渐变：**从右到左透明度逐渐增加**（左侧渐隐融进页面，右侧保持实体） */
+  -webkit-mask-image: linear-gradient(to right,
+      transparent 0%, rgba(0, 0, 0, .30) 26%, rgba(0, 0, 0, .72) 58%, #000 88%, #000 100%);
+  mask-image: linear-gradient(to right,
+      transparent 0%, rgba(0, 0, 0, .30) 26%, rgba(0, 0, 0, .72) 58%, #000 88%, #000 100%);
+  isolation: isolate;
+}
+.about-split__media img {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  object-fit: cover;
+  display: block;
+}
+/* 与首页 hero 同款的紫色色罩（跟随上面的遮罩一起渐隐） */
+.about-split__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(150deg, rgba(76, 29, 149, .58) 0%, rgba(109, 40, 217, .34) 48%, rgba(226, 147, 214, .30) 100%),
+    radial-gradient(120% 80% at 12% 88%, rgba(20, 8, 40, .34), transparent 62%);
+  pointer-events: none;
+}
+.about-split__caption {
+  position: absolute;
+  /* 挪到右侧实体区域：左侧被遮罩渐隐，放那里会看不清 */
+  right: 22px;
+  bottom: 16px;
+  margin: 0;
+  color: #fff;
+  font-size: .875rem;
+  letter-spacing: .06em;
+  text-align: right;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .5);
+}
+
+/* ---- 底部装饰色带 ---- */
+.about-band {
+  position: relative;
+  color: #fff;
+  background-image:
+    linear-gradient(115deg, rgba(76, 29, 149, .88) 0%, rgba(109, 40, 217, .62) 46%, rgba(154, 43, 226, .48) 100%),
+    url('/assets/band-about.jpg');
+  background-size: cover;
+  background-position: center;
+}
+.about-band__inner {
+  padding: clamp(44px, 6vw, 84px) clamp(20px, 5vw, 96px);
+  max-width: 1080px;
+}
+.about-band__kicker {
+  margin: 0 0 10px;
+  font-size: .8125rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .82);
+}
+.about-band__title {
+  margin: 0 0 12px;
+  font-size: clamp(1.625rem, 2.8vw, 2.375rem);
+  line-height: 1.2;
+}
+.about-band__copy {
+  margin: 0 0 24px;
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, .92);
+  max-width: 46em;
+}
+.about-band__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+/* 深色底上的描边按钮：保持白字白边，hover 才反色 */
+.btn--onDark {
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, .72) !important;
+  background: transparent !important;
+}
+.btn--onDark:hover {
+  background: rgba(255, 255, 255, .16) !important;
+  color: #fff !important;
+}
+
+/* ---- 响应式 ---- */
+@media (max-width: 900px) {
+  .about-split {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding: 28px 18px 40px;
+    gap: 28px;
+  }
+  .about-split__text { max-width: none; }
+  /* 窄屏：上下堆叠时图用 4:3（不再跟随文字高度），右侧留白也去掉 */
+  .about-split__media { height: auto; aspect-ratio: 4 / 3; max-height: none; margin-right: 0; }
+  .about-band__inner { padding: 40px 18px; }
+}

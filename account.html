@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>个人中心 · PHIX 维修社 · 上海民办平和学校</title>
+<meta name="mobile-css" content="/static/mobile-products.css">
+<script src="/static/ua-switch.js"></script>
+<link rel="stylesheet" href="/static/site.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="/" aria-label="phix 首页"><img src="/assets/logo-transparent.png" alt="phix"></a>
+    <nav class="nav" aria-label="主导航">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="/about/">关于我们</a></li>
+        <li class="nav__item">
+          <a class="nav__link nav__link--toggle" href="#products" aria-haspopup="true" aria-expanded="false">产品 <svg class="nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></a>
+          <div class="dropdown">
+            <p class="dropdown__group">软件</p>
+            <a class="dropdown__item" href="/products/xinlv/"><span>心履<small>心情记录</small></span></a>
+            <a class="dropdown__item" href="/products/phl/"><span>Pinghe Launcher<small>效率中枢</small></span></a>
+            <p class="dropdown__group">硬件</p>
+            <span class="dropdown__item dropdown__item--disabled"><span>敬请期待</span></span>
+          </div>
+        </li>
+        <li><a class="nav__link" href="/docs/">文档</a></li>
+        <li><a class="nav__link" href="/log/">PHIX 日志</a></li>
+      </ul>
+    </nav>
+    <div class="site-header__actions">
+      <a class="nav__link" href="/support/">服务与支持</a>
+      <a class="nav__link" href="/download/">下载</a>
+      <a class="btn btn--sm btn--primary" href="/login/" id="auth-btn">登录 / 注册</a>
+    </div>
+  </div>
+</header>
+
+<div class="account" id="account-app">
+  <aside class="account__side">
+    <img class="account__avatar" id="side-avatar" src="" alt="">
+    <div class="account__user" id="side-username">加载中…</div>
+    <button class="account__tab is-active" data-tab="profile">个人信息</button>
+    <button class="account__tab" data-tab="credentials">密码管理</button>
+  </aside>
+
+  <main class="account__main">
+    <!-- Tab: 个人信息 -->
+    <section class="account__panel" data-panel="profile">
+      <h2 class="account__title">个人信息</h2>
+      <form id="profile-form">
+        <div class="field">
+          <label>用户名</label>
+          <input type="text" id="prof-username" readonly>
+          <span class="field__help">用户名不可改</span>
+        </div>
+        <div class="field">
+          <label>头像</label>
+          <div style="display:flex;align-items:center;gap:16px;">
+            <img id="prof-avatar-preview" class="account__avatar" style="width:72px;height:72px;" src="" alt="">
+            <label class="btn btn--outline btn--sm" style="cursor:pointer;">
+              更换头像
+              <input type="file" id="prof-avatar-input" accept="image/*" style="display:none;">
+            </label>
+          </div>
+        </div>
+        <button type="submit" class="btn btn--primary btn--sm">保存头像</button>
+        <div id="prof-msg"></div>
+      </form>
+      <hr style="border:none;border-top:1px solid var(--phix-lilac);margin:24px 0;">
+      <p style="color:var(--ink-2);font-size:.875rem;">改密码请用下面的「密码管理」。</p>
+    </section>
+
+    <!-- Tab: 密码管理（固定四行） -->
+    <section class="account__panel hidden" data-panel="credentials">
+      <h2 class="account__title">密码管理</h2>
+      <p style="color:var(--ink-2);font-size:.875rem;margin-bottom:16px;">管理你的平台凭据与 phix 登录密码。明文只在浏览器内存中，提交即加密上传。</p>
+      <div id="cred-list"></div>
+      <hr style="border:none;border-top:1px solid var(--phix-lilac);margin:24px 0;">
+
+      <!-- 2026-09-13 新增：AI 服务商与密钥（存进 settings.ai 同步对象，端到端加密；可加多个） -->
+      <h3 style="margin:0 0 8px;font-size:1rem;font-weight:700;">AI 服务商（可选，可以加多个）</h3>
+      <p style="color:var(--ink-2);font-size:.875rem;margin-bottom:12px;">
+        在这里填的服务商与密钥会**跟着你的 phix 账号同步**：网页端与各客户端的 AI 都能用，在哪一端改都同步。
+        密钥端到端加密保存，服务端只在回答那一次请求里临时使用，不落盘、不记日志。
+        <br>注意：<strong>网页端只能使用公网可访问的服务商</strong>（<code>http://localhost</code> 这类本机地址网页端连不上，那种请用桌面客户端）。
+      </p>
+      <div id="ai-provider-list"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+        <button type="button" class="btn btn--outline btn--sm" id="ai-add">＋ 添加一个服务商</button>
+        <button type="button" class="btn btn--primary btn--sm" id="ai-save">保存 AI 配置</button>
+      </div>
+      <div id="ai-cred-msg"></div>
+      <hr style="border:none;border-top:1px solid var(--phix-lilac);margin:24px 0;">
+      <h3 style="margin:0 0 8px;font-size:1rem;font-weight:700;">phix 账号密码</h3>
+      <p style="color:var(--ink-2);font-size:.875rem;margin-bottom:12px;">修改 phix 登录密码（出于安全，当前密码不可查看）。改完其它设备需重新登录。</p>
+      <form id="phix-pass-form" style="max-width:480px;">
+        <div class="field"><label>当前密码</label><input id="pwd-current" type="password" autocomplete="current-password" required></div>
+        <div class="field"><label>新密码</label><input id="pwd-new" type="password" autocomplete="new-password" required></div>
+        <div class="field"><label>确认新密码</label><input id="pwd-confirm" type="password" autocomplete="new-password" required></div>
+        <button type="submit" class="btn btn--primary btn--sm">修改密码</button>
+        <div id="phix-pass-msg"></div>
+      </form>
+    </section>
+  </main>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__col"><img class="site-footer__logo" src="/assets/logo-transparent.png" alt="phix"><p class="site-footer__blurb">{{cms:footer.blurb|上海民办平和学校 · 维修社 · 用代码装点校园生活}}</p></div>
+    <div class="site-footer__contact"><p class="site-footer__heading">联系我们</p><p>📧 {{cms:footer.contact_email|norine.liu@icloud.com/huaziqian40@gmail.com}}</p><p>📞 {{cms:footer.contact_phone|18901712280/13675821816}}</p><p>💬 微信：{{cms:footer.contact_wechat|Norine2010/int_32_2147483647}}</p><p>📺 <a href="{{cms:footer.contact_bilibili|https://space.bilibili.com/1121702307}}" target="_blank" rel="noopener">B站主页</a></p></div>
+    <nav class="site-footer__links" aria-label="页脚导航"><a href="/about/">关于我们</a><a href="/products/xinlv/">产品</a><a href="/download/">下载</a><a href="/log/">PHIX 日志</a></nav>
+  </div>
+  <div class="site-footer__copy">{{cms:footer.copyright|© 2026 phix}}</div>
+</footer>
+
+<script src="/static/site.js"></script>
+<script>
+// ---- Auth check ----
+let currentUser = null;
+(async () => {
+  const u = await checkAuth();
+  if (!u) { location.href = '/login/?next=/account/'; return; }
+  currentUser = u;
+  document.getElementById('side-username').textContent = u.username;
+  document.getElementById('prof-username').value = u.username;
+  if (u.avatar) {
+    document.getElementById('side-avatar').src = u.avatar;
+    document.getElementById('prof-avatar-preview').src = u.avatar;
+  }
+  const btn = document.getElementById('auth-btn');
+  if (btn) { btn.textContent = '个人中心'; btn.href = '/account/'; }
+  initTabs('.account', '.account__tab', '.account__panel');
+  loadCredentials();
+  loadAiCred();
+})();
+
+// ---- Avatar upload ----
+document.getElementById('prof-avatar-input').addEventListener('change', async function() {
+  const file = this.files[0];
+  if (!file) return;
+  try {
+    const dataUrl = await compressAvatar(file);
+    document.getElementById('prof-avatar-preview').src = dataUrl;
+    const { status, data } = await api('POST', '/proxy/sync/objects/profile/', {
+      payload: JSON.stringify({ display_name: currentUser.username, avatar: dataUrl, updated_at: new Date().toISOString() }),
+      base_revision: 0
+    });
+    const msg = document.getElementById('prof-msg');
+    if (status === 200 || status === 201) {
+      msg.className = 'msg-success'; msg.textContent = '头像已保存 ✓';
+      document.getElementById('side-avatar').src = dataUrl;
+    } else {
+      const gr = await api('GET', '/proxy/sync/objects/profile/');
+      let rev = 0;
+      if (gr.status === 200 && gr.data.revision) rev = gr.data.revision;
+      const r2 = await api('POST', '/proxy/sync/objects/profile/', {
+        payload: JSON.stringify({ display_name: currentUser.username, avatar: dataUrl, updated_at: new Date().toISOString() }),
+        base_revision: rev
+      });
+      if (r2.status === 200 || r2.status === 201) {
+        msg.className = 'msg-success'; msg.textContent = '头像已保存 ✓';
+        document.getElementById('side-avatar').src = dataUrl;
+      } else {
+        msg.className = 'msg-error'; msg.textContent = '保存失败';
+      }
+    }
+  } catch (e) {
+    document.getElementById('prof-msg').className = 'msg-error';
+    document.getElementById('prof-msg').textContent = '上传失败';
+  }
+});
+
+// ---- 工具：HTML 转义（把凭据值安全放进输入框）----
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+// ---- 工具：眼睛切换（input 是按钮的前一个兄弟元素）----
+function toggleSecret(btn) {
+  const input = btn.previousElementSibling;
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.textContent = isHidden ? '🙈' : '👁';
+}
+
+// ---- Credentials（固定四行：邮箱 / ManageBac / Edupage / phix 账号）----
+const CRED_ROWS = [
+  // 2026-09-13 用户要求：邮箱凭据要三个字段（邮箱 / 密码 / 客户端授权码）。
+  // 网易企业邮的 IMAP/SMTP 只认授权码，所以两者都要留位置。
+  { id: 'mail', label: '邮箱', match: k => k.startsWith('mail:') || k === 'mail',
+    defaultFields: { email: '', password: '', authcode: '' } },
+  { id: 'managebac', label: 'ManageBac', match: k => k === 'managebac' || k.startsWith('managebac:'), defaultFields: { email: '', password: '' } },
+  { id: 'edupage', label: 'Edupage', match: k => k === 'edupage' || k.startsWith('edupage:'), defaultFields: { username: '', password: '' } },
+];
+let credAccounts = {};
+let credRevision = 0;
+// 字段中文名（用户要求邮箱是三字段：邮箱 / 密码 / 客户端授权码，界面上不要露原始 key）
+const FIELD_LABELS = {
+  email: '邮箱', username: '用户名', password: '密码',
+  authcode: '客户端授权码', note: '备注',
+};
+
+function findSection(matchFn) {
+  for (const key of Object.keys(credAccounts)) {
+    if (matchFn(key)) return key;
+  }
+  return null;
+}
+
+function renderCredentials() {
+  const list = document.getElementById('cred-list');
+  // 2026-09-12 修：原来没存过凭据就 `暂无凭据` + return，导致
+  // 「邮箱 / ManageBac / Edupage」三行**永远不渲染**（用户只看到 phix 密码表单）。
+  // 现在固定三行始终渲染，空值就是空输入框 + 占位提示。
+  let html = '';
+  if (!Object.keys(credAccounts).length) {
+    html += '<p style="color:var(--ink-2);font-size:.875rem;margin-bottom:12px;">还没有保存过凭据 —— 在下面填写后点「保存」即加密上传（明文只在浏览器内存里）。</p>';
+  }
+  for (const row of CRED_ROWS) {
+    const sectionKey = findSection(row.match);
+    const existing = (sectionKey && credAccounts[sectionKey]) ? credAccounts[sectionKey] : {};
+    const fields = { ...row.defaultFields, ...existing };
+    html += `<div class="cred-section" data-row="${row.id}" data-section="${escapeHtml(sectionKey || '')}">`;
+    html += `<div class="cred-section__title">${row.label}${sectionKey ? ` <span style="font-weight:400;color:var(--ink-2);font-size:.8125rem;">（${escapeHtml(sectionKey)}）</span>` : ''}</div>`;
+    for (const [k, v] of Object.entries(fields)) {
+      const isSecret = (k === 'password' || k === 'authcode');
+      const val = (v === undefined || v === null) ? '' : String(v);
+      const label = FIELD_LABELS[k] || k;   // 显示中文名（邮箱 / 密码 / 客户端授权码 …）
+      const inputStyle = 'flex:1;height:38px;padding:0 12px;border:1px solid var(--phix-lilac);border-radius:var(--radius-input);font-family:monospace;';
+      if (isSecret) {
+        html += `<div class="cred-row"><span class="cred-row__label">${escapeHtml(label)}</span><input type="password" class="cred-field" data-field="${escapeHtml(k)}" value="${escapeHtml(val)}" placeholder="未设置" style="${inputStyle}"><button type="button" class="pw-toggle" onclick="toggleSecret(this)">👁</button></div>`;
+      } else {
+        html += `<div class="cred-row"><span class="cred-row__label">${escapeHtml(label)}</span><input type="text" class="cred-field" data-field="${escapeHtml(k)}" value="${escapeHtml(val)}" style="${inputStyle}"></div>`;
+      }
+    }
+    html += `<div class="cred-row"><button type="button" class="btn btn--primary btn--sm cred-save">保存</button><span class="cred-row-msg" style="color:var(--ink-2);font-size:.8125rem;"></span></div>`;
+    html += '</div>';
+  }
+  list.innerHTML = html;
+  list.querySelectorAll('.cred-section').forEach(sec => {
+    sec.querySelector('.cred-save').addEventListener('click', () => saveCredential(sec));
+  });
+}
+
+async function loadCredentials() {
+  const { status, data } = await api('GET', '/proxy/sync/objects/settings.accounts/');
+  if (status === 200 && data.payload) {
+    try {
+      const obj = JSON.parse(data.payload);
+      credAccounts = obj.accounts || {};
+      credRevision = data.revision || 0;
+    } catch { credAccounts = {}; }
+  } else {
+    credAccounts = {};
+  }
+  renderCredentials();
+}
+
+async function saveCredential(secEl) {
+  const rowId = secEl.dataset.row;
+  const sectionKey = secEl.dataset.section;
+  const row = CRED_ROWS.find(r => r.id === rowId);
+  if (!row) return;
+  const edited = {};
+  secEl.querySelectorAll('.cred-field').forEach(inp => {
+    edited[inp.dataset.field] = inp.value;
+  });
+  let targetKey = sectionKey;
+  if (!targetKey) targetKey = rowId;  // 新建时用默认 key（mail / managebac / edupage）
+  const existing = credAccounts[targetKey] || {};
+  const merged = { ...existing, ...edited };
+  const next = { ...credAccounts, [targetKey]: merged };
+  const msgEl = secEl.querySelector('.cred-row-msg');
+  const { status } = await api('POST', '/proxy/sync/objects/settings.accounts/', {
+    payload: JSON.stringify({ accounts: next }),
+    base_revision: credRevision
+  });
+  if (status === 200 || status === 201) {
+    msgEl.textContent = '已保存 ✓';
+    msgEl.style.color = '#2e7d32';
+    credAccounts = next;
+    const g = await api('GET', '/proxy/sync/objects/settings.accounts/');
+    if (g.status === 200 && g.data.revision !== undefined) credRevision = g.data.revision;
+    renderCredentials();
+  } else {
+    msgEl.textContent = '保存失败';
+    msgEl.style.color = '#d32f2f';
+  }
+}
+
+// ---- AI 服务商与密钥（settings.ai 同步对象；可加多个，结构对齐客户端）----
+// 2026-09-13：用户要求 AI 配置也像平台凭据一样随账号同步，且不限服务商数量。
+// 写入结构：{"providers":[{"name","protocol","base_url","model","api_key"}], "default_index":0}
+// —— 与 PLL 的 `ai_providers`（protocol: openai|anthropic）保持一致，客户端读得懂。
+let aiRevision = 0;
+let aiProviders = [];
+
+function renderAiProviders() {
+  const box = document.getElementById('ai-provider-list');
+  if (!box) return;
+  if (!aiProviders.length) { aiProviders.push({ name: '', protocol: 'openai', base_url: '', model: '', api_key: '' }); }
+  const inputStyle = 'flex:1;height:36px;padding:0 10px;border:1px solid var(--phix-lilac);border-radius:8px;';
+  box.innerHTML = aiProviders.map((p, i) => `
+    <div class="ai-provider" data-idx="${i}"
+         style="border:1px solid var(--phix-lilac);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--phix-mist);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.875rem;font-weight:600;">
+          <input type="radio" name="ai-default" value="${i}" ${(i === (window.__aiDefaultIndex || 0)) ? 'checked' : ''}> 默认用这个
+        </label>
+        <span style="color:var(--ink-2);font-size:.8125rem;">服务商 ${i + 1}</span>
+        <button type="button" class="btn btn--outline btn--sm" data-ai-remove="${i}"
+                style="margin-left:auto;">删除</button>
+      </div>
+      <div class="cred-row" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span class="cred-row__label" style="width:88px;">名称</span>
+        <input type="text" data-field="name" value="${escapeHtml(p.name || '')}"
+               placeholder="随便起个名，例如 DeepSeek" style="${inputStyle}">
+      </div>
+      <div class="cred-row" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span class="cred-row__label" style="width:88px;">协议</span>
+        <select data-field="protocol" style="${inputStyle}">
+          <option value="openai" ${p.protocol !== 'anthropic' ? 'selected' : ''}>openai（兼容 /chat/completions）</option>
+          <option value="anthropic" ${p.protocol === 'anthropic' ? 'selected' : ''}>anthropic</option>
+        </select>
+      </div>
+      <div class="cred-row" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span class="cred-row__label" style="width:88px;">Base URL</span>
+        <input type="text" data-field="base_url" value="${escapeHtml(p.base_url || '')}"
+               placeholder="https://api.deepseek.com/v1" style="${inputStyle}">
+      </div>
+      <div class="cred-row" style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span class="cred-row__label" style="width:88px;">模型名</span>
+        <input type="text" data-field="model" value="${escapeHtml(p.model || '')}"
+               placeholder="deepseek-chat" style="${inputStyle}">
+      </div>
+      <div class="cred-row" style="display:flex;align-items:center;gap:10px;">
+        <span class="cred-row__label" style="width:88px;">API Key</span>
+        <input type="password" data-field="api_key" value="${escapeHtml(p.api_key || '')}"
+               placeholder="sk-…" style="${inputStyle}">
+        <button type="button" class="pw-toggle" onclick="toggleSecret(this)">👁</button>
+      </div>
+    </div>`).join('');
+  box.querySelectorAll('[data-ai-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      aiProviders.splice(Number(btn.dataset.aiRemove), 1);
+      renderAiProviders();
+    });
+  });
+  window.__aiDefaultIndex = aiProviders.length ? Math.min(window.__aiDefaultIndex || 0, aiProviders.length - 1) : 0;
+}
+
+function collectAiProviders() {
+  const box = document.getElementById('ai-provider-list');
+  const rows = [];
+  box.querySelectorAll('.ai-provider').forEach(el => {
+    const get = f => (el.querySelector(`[data-field="${f}"]`) || {}).value || '';
+    rows.push({ name: get('name').trim(), protocol: get('protocol') || 'openai',
+                base_url: get('base_url').trim(), model: get('model').trim(), api_key: get('api_key').trim() });
+  });
+  const picked = box.querySelector('input[name="ai-default"]:checked');
+  return { providers: rows.filter(r => r.base_url || r.api_key || r.model), default_index: picked ? Number(picked.value) : 0 };
+}
+
+async function loadAiCred() {
+  if (!document.getElementById('ai-provider-list')) return;
+  const { status, data } = await api('GET', '/proxy/sync/objects/settings.ai/');
+  aiProviders = [];
+  window.__aiDefaultIndex = 0;
+  const msg = document.getElementById('ai-cred-msg');
+  if (status === 200 && data && data.payload) {
+    try {
+      let cfg = JSON.parse(data.payload) || {};
+      // 兼容三种历史形态：
+      //   ① 本页规范形态 {providers:[...], default_index}
+      //   ② PLL 的包装形态 {"ai": {"providers": [...]}}（PLL 把 ai 段整体塞进对象里）
+      //   ③ PHL 的扁平单服务商 {provider:'api', apiModel, apiKey, localModel, ...}
+      if (cfg && cfg.ai && typeof cfg.ai === 'object' && !Array.isArray(cfg.ai)) cfg = cfg.ai;
+      if (Array.isArray(cfg.providers)) {
+        aiProviders = cfg.providers;
+        window.__aiDefaultIndex = Number(cfg.default_index || 0);
+      } else if (cfg.base_url || cfg.api_key) {
+        aiProviders = [{ name: cfg.name || '', protocol: cfg.protocol || 'openai',
+                         base_url: cfg.base_url || '', model: cfg.model || '', api_key: cfg.api_key || '' }];
+      } else if (cfg.apiKey || cfg.apiModel) {
+        aiProviders = [{ name: '来自客户端', protocol: 'openai', base_url: '',
+                         model: cfg.apiModel || '', api_key: cfg.apiKey || '' }];
+      }
+      aiRevision = data.revision || 0;
+      if (aiProviders.length) {
+        msg.className = 'msg-success';
+        msg.textContent = '已配置 ' + aiProviders.length + ' 个服务商（随账号同步）'
+          + (aiProviders.some(p => !p.base_url) ? '；有一项缺 Base URL，请补上后保存' : '');
+      }
+    } catch (e) { /* 配置坏了就留空让用户重填 */ }
+  }
+  renderAiProviders();
+}
+
+document.getElementById('ai-add').addEventListener('click', () => {
+  aiProviders.push({ name: '', protocol: 'openai', base_url: '', model: '', api_key: '' });
+  renderAiProviders();
+});
+
+document.getElementById('ai-save').addEventListener('click', async () => {
+  const msg = document.getElementById('ai-cred-msg');
+  const payloadObj = collectAiProviders();
+  if (!payloadObj.providers.length) {
+    msg.className = 'msg-error';
+    msg.textContent = '至少要填一个服务商的 Base URL 与 API Key（不想用 AI 就保持空着）';
+    return;
+  }
+  const { status } = await api('POST', '/proxy/sync/objects/settings.ai/', {
+    // 规范形态还带 updated_at / updated_by（PLL 与 PHL 都写，用于按时间做三方合并；
+    // 网页端补上这两个字段，各端才完全一致）
+    payload: JSON.stringify({
+      providers: payloadObj.providers,
+      default_index: payloadObj.default_index,
+      updated_at: new Date().toISOString(),
+      updated_by: 'web'
+    }),
+    base_revision: aiRevision
+  });
+  if (status === 200 || status === 201) {
+    aiProviders = payloadObj.providers;
+    msg.className = 'msg-success';
+    msg.textContent = '已保存 ✓ 共 ' + aiProviders.length + ' 个服务商，网页端与客户端都会用这份配置';
+    const g = await api('GET', '/proxy/sync/objects/settings.ai/');
+    if (g.status === 200 && g.data.revision !== undefined) aiRevision = g.data.revision;
+  } else {
+    msg.className = 'msg-error';
+    msg.textContent = '保存失败' + (status === 409 ? '（版本冲突，请刷新页面重试）' : '');
+  }
+});
+
+// ---- phix 账号密码修改（只可改，不可查看）----
+document.getElementById('phix-pass-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const current = document.getElementById('pwd-current').value;
+  const newpw = document.getElementById('pwd-new').value;
+  const confirm = document.getElementById('pwd-confirm').value;
+  const msg = document.getElementById('phix-pass-msg');
+  if (!current || !newpw || !confirm) { msg.className = 'msg-error'; msg.textContent = '请填写完整'; return; }
+  if (newpw !== confirm) { msg.className = 'msg-error'; msg.textContent = '两次新密码不一致'; return; }
+  const { status, data } = await api('POST', '/auth/password/', {
+    current_password: current, new_password: newpw, confirm_password: confirm
+  });
+  if (status === 200 && data.ok) {
+    msg.className = 'msg-success';
+    msg.textContent = data.message || '密码已更新，其它设备需重新登录';
+    document.getElementById('pwd-current').value = '';
+    document.getElementById('pwd-new').value = '';
+    document.getElementById('pwd-confirm').value = '';
+  } else {
+    msg.className = 'msg-error';
+    msg.textContent = (data && data.error && data.error.message) || '修改失败';
+  }
+});
+</script>
+</body>
+</html>

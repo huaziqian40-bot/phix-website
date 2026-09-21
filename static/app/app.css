@@ -1,0 +1,1066 @@
+/* ==========================================================================
+   PHL 网页版 · 样式（设计 token 与客户端 Pinghe Launcher Lite 一致）
+   墨绿 / 酒红 / 金 / 象牙白。零外部依赖：无 CDN、无 @import、无外链字体。
+   自成一套：不引用站点样式，也不含站点配色。
+   ========================================================================== */
+
+:root{
+  --green-950:#102d25; --green-900:#173f33; --green-800:#1f5a46; --green-700:#2a725a;
+  --green-100:#dfeae4; --green-50:#edf4f0;
+  --wine-700:#8b3445; --wine-100:#f1e2e5;
+  --gold-600:#b58d45; --gold-500:#c5a05a; --gold-100:#f2e8d2;
+  --ivory-50:#fbfaf6; --ivory-100:#f5f2e9; --ivory-200:#ebe6d8;
+  --ink:#18231e; --ink-2:#4d5d55; --ink-3:#7c8982; --white:#fff;
+  --border:rgba(24,35,30,.1);
+  --shadow-sm:0 3px 16px rgba(26,50,40,.07);
+  --shadow-md:0 18px 50px rgba(26,50,40,.1);
+  --radius-sm:10px; --radius:16px; --radius-lg:24px;
+  --side-w:224px;
+  --font-sans:"Segoe UI Variable Text","Segoe UI","PingFang SC","Microsoft YaHei UI",sans-serif;
+}
+
+*{box-sizing:border-box}
+
+/* hidden 属性必须压得住任何 display 声明（#app/.login-wrap 都是 display:flex，
+   否则 hidden 会被盖掉 → 未登录时外壳照画、登录态下登录卡照画）。 */
+[hidden]{display:none!important}
+
+html,body{height:100%}
+
+body{
+  margin:0;
+  background:var(--ivory-50);
+  color:var(--ink);
+  font-family:var(--font-sans);
+  font-size:14px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+
+button{font-family:inherit;font-size:13.5px;cursor:pointer;border:none;border-radius:var(--radius-sm)}
+input,select,textarea{
+  font-family:inherit;font-size:13.5px;color:var(--ink);
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:8px 10px;background:var(--white);
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--green-100);border-color:var(--green-700)}
+a{color:var(--green-700)}
+
+:where(a,button,input,select,textarea):focus-visible{
+  outline:3px solid rgba(42,114,90,.4);outline-offset:2px;
+}
+
+.hidden{display:none!important}
+.muted{color:var(--ink-3);font-size:13px;margin:0}
+.small{font-size:12.5px}
+.flex1{flex:1}
+.footnote{color:var(--ink-3);font-size:12.5px;margin-top:10px}
+.empty{color:var(--ink-3);padding:8px 2px;margin:0}
+.note{color:var(--ink-3);font-size:12.5px;margin:0 0 10px}
+.row-tools{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 14px}
+.row-tools>.card-title{margin-bottom:0}
+
+/* 首屏 = 开机画面（2026-09-20 用户要求，三端统一）：墨绿底、中间 logo、一根细进度条，
+   没有任何文字。logo 用 PHL Lite 的那张。 */
+.boot{
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:30px;
+  background:#102d25;
+  color:var(--ivory-50);font-size:14px;
+}
+.boot-logo{width:96px;height:96px;display:block;object-fit:contain}
+.boot-bar{width:220px;height:4px;border-radius:999px;background:rgba(251,250,246,.16);overflow:hidden}
+.boot-bar>i{display:block;height:100%;width:0;border-radius:999px;background:var(--ivory-50);
+  transition:width .35s cubic-bezier(.22,.61,.36,1)}
+
+.login-wrap{
+  min-height:100%;
+  display:flex;align-items:center;justify-content:center;padding:40px 18px;
+  background:linear-gradient(180deg,var(--green-900),var(--green-950));
+}
+.login-card{max-width:400px;width:100%;margin:0}
+.login-logo{
+  font-size:20px;font-weight:750;letter-spacing:.2px;color:var(--green-900);margin-bottom:4px;
+}
+.login-card .field{margin-bottom:10px}
+#login-msg{margin:0 0 8px;color:var(--wine-700)}
+#login-msg:empty{display:none}
+.login-actions{display:flex;align-items:center;gap:12px;margin-top:14px}
+
+/* ---------- 布局 ---------- */
+
+#app{display:flex;height:100%}
+
+.sidebar{
+  width:var(--side-w);flex:none;
+  background:linear-gradient(180deg,var(--green-900),var(--green-950));
+  color:var(--ivory-50);
+  display:flex;flex-direction:column;padding:18px 12px;overflow-y:auto;
+}
+/* 左上角品牌：整块是个按钮（点了回首页），logo 是图片（用户 2026-09-20 要求） */
+.logo{display:flex;gap:10px;align-items:center;padding:4px 8px 16px;cursor:pointer;border-radius:10px;
+  width:100%;background:none;border:0;color:inherit;text-align:left;font:inherit}
+.logo:hover b{color:var(--gold-500)}
+.logo:hover .logo-mark{transform:scale(1.04)}
+.logo-mark{width:38px;height:38px;border-radius:10px;flex:none;display:block;object-fit:contain;
+  transition:transform .16s ease}
+.logo-text{min-width:0}
+.logo-text b{font-size:15px;display:block;line-height:1.25}
+.logo-text small{display:block;color:var(--green-100);opacity:.75;font-size:11px}
+
+#tabs{display:flex;flex-direction:column;gap:4px;flex:1}
+#tabs .tab{
+  background:transparent;color:var(--green-100);text-align:left;
+  padding:10px 12px;border-radius:var(--radius-sm);font-size:14px;
+  white-space:nowrap;
+}
+#tabs .tab:hover{background:rgba(255,255,255,.08)}
+#tabs .tab.is-active{background:var(--ivory-50);color:var(--green-900);font-weight:600}
+
+.side-foot{margin-top:12px;border-top:1px solid rgba(255,255,255,.14);padding-top:10px}
+.side-user{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.side-user__name{
+  flex:1;min-width:0;font-size:12.5px;color:var(--green-100);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.ghost--dark{border:1px solid rgba(255,255,255,.28);color:var(--ivory-50);background:transparent;padding:5px 10px;font-size:12.5px}
+.ghost--dark:hover{background:rgba(255,255,255,.12);border-color:var(--ivory-50)}
+
+.main{flex:1;min-width:0;overflow-y:auto;padding:0 24px 40px;
+  /* 宽屏下这一列**本身不滚**（见下面 .view.active：#view-mail 自己滚）。
+     必须给 flex 子项显式 min-height:0 —— 默认 auto 会被内容撑高，
+     640 封的邮件列表就能把整页撑成五万多像素高（用户看到"右边两根滚动条、
+     往下滑一片空白"）。 */
+  display:flex;flex-direction:column;min-height:0}
+
+.topbar{
+  display:flex;align-items:center;gap:12px;
+  height:64px;padding:0 2px;margin-bottom:16px;
+  position:sticky;top:0;z-index:20;
+  background:var(--ivory-50);
+}
+.topbar h1{font-size:22px;margin:0;font-weight:750}
+.topbar__spacer{flex:1}
+.icon-btn{
+  width:38px;height:38px;flex:none;border-radius:var(--radius-sm);
+  background:var(--ivory-100);border:1px solid var(--border);color:var(--ink-2);
+  font-size:16px;line-height:1;padding:0;
+}
+/* 宽屏侧栏常驻 → 收起按钮只在窄屏出现 */
+@media (min-width:901px){.icon-btn{display:none}}
+
+.view{display:none}
+.view.active{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+/* 宽屏：视图**自己不滚**，把高度交给内部的滚动盒子（邮箱列表 / 正文各滚各的）。
+   `.main` 是 flex 列，所以这里的 flex:1 1 auto + min-height:0 让视图拿到
+   "顶栏以下的剩余高度" —— 这是唯一一个不依赖任何魔法数字的高度来源。
+   注意不能只写 `height:100%`：`.main` 的可用高度按内容算，百分比会解析成 auto
+   （实测 `#mail-split` 会塌成 0 高，正文被 contain:paint 裁掉、整块看不见）。 */
+@media (min-width:901px){
+  .view.active{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:auto}
+  /* 宽屏下邮箱页的两张主卡片**要高一些**（用户要求："邮件和邮件内容的卡片长一点，
+     当前登录的那个卡片可以藏在屏幕下面，要往下滑才能看到"）。
+     ① 光靠 flex 的剩余高度只能"刚好铺满一屏"（900px 窗口实测 549px，一屏 4–5 封），
+        所以给一个下限把它抬起来；多出来的部分由 `#view-mail` 自己滚（overflow:auto），
+        **整页/文档仍然不滚**（这是上一轮修双滚动条时立的规矩，别破坏）。
+     ② `+55px` 是上面那块固定高度的工具条 + 视图内边距（`#mail-split{top:128}` 那部分），
+        不加它的话卡片会露出几十像素的一截（真浏览器实测：84vh 时 900px 窗口露 -11px）。
+     ③ 系数用 85：实测 calc(85vh + 55px) 在 720–1200px 五种窗口高度下，卡片整张都落在
+        折叠线以下（+10 ~ +73px），是全绿的最小值；再小就会露一截。
+     ④ 下限只能用 vh/calc，不能用百分比 —— `.main` 的高度由内容决定，百分比解析不出
+        确定值（`.mail-split{height:100%}` 那次踩过：整块塌成 0 高、正文被裁掉）。 */
+  #mail-split{min-height:calc(85vh + 55px)}
+}
+
+/* ---------- 卡片 ---------- */
+
+.card{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);padding:16px 18px;margin-bottom:16px;
+}
+.card-title{
+  font-weight:700;font-size:13.5px;color:var(--ink-2);
+  text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;
+}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.grid-2>.card{min-width:0}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:start;margin-bottom:16px}
+.grid-3>.card{min-width:0}
+.go-card{cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
+.go-card:hover{border-color:var(--green-800);box-shadow:0 2px 10px rgba(31,90,70,.10)}
+.go-card:hover .card-title{color:var(--green-800)}
+
+/* ---------- 首页 ---------- */
+
+.hero{display:grid;grid-template-columns:1.1fr 1.5fr .8fr;gap:16px;margin-bottom:16px}
+.big-clock{font-size:44px;font-weight:750;letter-spacing:2px;font-variant-numeric:tabular-nums}
+.current-lesson{font-size:17px;font-weight:650}
+.current-lesson small{display:block;font-weight:400;color:var(--ink-3);font-size:13px}
+.hero-duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;min-width:0}
+.hero-duo .card{min-width:0}
+.hero-duo .current-lesson{font-size:15px}
+.hero-duo .current-lesson small{font-size:12px}
+.big-num{font-size:34px;font-weight:750;color:var(--green-800)}
+
+/* ---------- 列表 ---------- */
+
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:10px;background:var(--ivory-100);
+  border-radius:var(--radius-sm);padding:9px 12px;
+  transition:background-color .15s ease,color .15s ease,border-color .15s ease,
+    transform .12s ease,box-shadow .15s ease}
+.item .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .dim{color:var(--ink-3);font-size:12.5px;white-space:nowrap}
+/* 课程行/作业行的主列允许换行：PHL 的 .co-name 里那行「总评 … · 点击看课程详情」
+   就是靠 <small> 的 display:block 换到第二行的，父级若 nowrap 就挤成一行了。 */
+.item.course-row .grow,.item.ddl-item .grow{white-space:normal}
+.item.done{opacity:.55}
+.item.clickable{cursor:pointer}
+.item.clickable:hover{border-color:var(--green-700)}
+.badge{font-size:11.5px;padding:2px 8px;border-radius:99px;background:var(--gold-100);color:var(--gold-600)}
+.badge.red{background:var(--wine-100);color:var(--wine-700)}
+.badge.green{background:var(--green-100);color:var(--green-800)}
+
+/* ---------- 按钮 ---------- */
+
+.primary{background:var(--green-800);color:var(--white);padding:8px 16px}
+.primary:hover{background:var(--green-700)}
+.primary:disabled{opacity:.5;cursor:default}
+.ghost{
+  background:transparent;border:1px solid var(--border);color:var(--ink-2);padding:7px 14px;
+  text-decoration:none;
+}
+.ghost:hover{border-color:var(--green-700);color:var(--green-800)}
+.danger{background:var(--wine-100);color:var(--wine-700);padding:7px 14px}
+.danger:hover{background:#e9d2d7}
+a.ghost{color:var(--ink-2)}
+
+/* ---------- 标签 / 小片 ---------- */
+
+.tag{
+  display:inline-block;padding:1px 9px;border:1px solid var(--border);
+  border-radius:999px;background:var(--green-50);color:var(--green-800);font-size:12px;
+}
+.tag[hidden]{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  display:inline-block;padding:3px 11px;border:1px solid var(--border);border-radius:999px;
+  background:var(--green-50);color:var(--green-800);font-size:12.5px;overflow-wrap:anywhere;
+}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.mark{padding:0 2px;background:var(--ivory-100);border-radius:4px;color:var(--ink-3);font-size:12.5px}
+.kv{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.kv__row{
+  display:grid;grid-template-columns:minmax(110px,180px) minmax(0,1fr);gap:12px;
+  padding:8px 14px;border-bottom:1px solid var(--border);
+}
+.kv__row:last-child{border-bottom:0}
+.kv__k{font-size:13px;font-weight:600;color:var(--ink-2);overflow-wrap:anywhere}
+.kv__v{min-width:0;font-size:13.5px;overflow-wrap:anywhere}
+
+/* ---------- 提示条 ---------- */
+
+.inline-msg{
+  padding:10px 14px;margin:0 0 14px;background:var(--ivory-100);
+  border:1px solid var(--border);border-left:4px solid var(--green-700);
+  border-radius:var(--radius-sm);color:var(--ink-2);font-size:13.5px;overflow-wrap:anywhere;
+}
+.inline-msg--error{background:var(--wine-100);border-color:var(--wine-700);border-left-color:var(--wine-700);color:var(--wine-700)}
+.inline-msg[hidden]{display:none}
+
+.notice{
+  padding:14px 16px;margin-bottom:18px;background:var(--green-50);
+  border:1px solid var(--border);border-left:4px solid var(--green-700);border-radius:var(--radius);
+}
+.notice__title{margin:0 0 4px;font-size:13.5px;font-weight:700;color:var(--green-800)}
+.notice__body{margin:0;font-size:13.5px;color:var(--ink-2);overflow-wrap:anywhere}
+.notice__body strong{color:var(--ink)}
+.card .notice{margin-bottom:0}
+
+/* ---------- 表单 ---------- */
+
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>span{font-size:13px;font-weight:600;color:var(--ink)}
+.field input,.field select{min-width:0}
+.field--inline{flex:0 1 200px}
+.tools{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-bottom:12px}
+.tools__count{margin-left:auto;font-size:12.5px;color:var(--ink-3)}
+.sched-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.sched-form__actions{grid-column:1/-1;display:flex;gap:10px}
+.sched-foot--closed{padding:0;background:transparent;border:0;box-shadow:none}
+
+/* ---------- 课表 / 日程 / 课程行 ---------- */
+
+.day-group{margin-bottom:18px}
+.day-group:last-child{margin-bottom:0}
+.day-group__title{
+  margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--ivory-200);
+  font-size:13px;font-weight:650;letter-spacing:.03em;color:var(--ink-2);
+}
+.evt{display:flex;align-items:flex-start;gap:12px;padding:10px 4px;border-bottom:1px solid var(--ivory-200)}
+.evt:last-child{border-bottom:0}
+.evt__time{
+  flex:none;min-width:74px;padding-top:1px;font-size:14px;font-weight:650;
+  font-variant-numeric:tabular-nums;color:var(--ink);
+}
+.evt__main{flex:1;min-width:0}
+.evt__title{font-size:14px;font-weight:550;overflow-wrap:anywhere}
+.evt__note{font-size:13px;color:var(--ink-2);overflow-wrap:anywhere}
+.evt__by{margin-top:2px;font-size:12px;color:var(--ink-3)}
+.evt__lock{flex:none;padding-top:2px;font-size:12px;color:var(--ink-3)}
+.evt__del{flex:none}
+
+/* ---------- 我的日程：周 / 月 / 年日历（类名与网格做法照客户端 PHL Lite） ---------- */
+
+.sched-label{font-size:14px;font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums}
+.sched-hint[hidden]{display:none}
+.sched-hint>p{margin-bottom:10px}
+/* 兼容层：屏外按天分组的条目（既有脚本/测试与无障碍树用），绝对定位 + 1px 裁剪，不占位 */
+.sch-compat{position:absolute;left:0;top:0;width:1px;height:1px;overflow:hidden;
+  clip-path:inset(50%);pointer-events:none;white-space:nowrap}
+.sched-card-wrap{position:relative}
+
+/* 周视图：一周七列日期卡（照客户端 `.sch-week` / `.sch-day`）。
+   `grid-auto-rows:min-content` + `align-content:start`：行高按内容长，不被容器高度拉高。 */
+.sch-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;
+  grid-auto-rows:min-content;align-content:start}
+.sch-day{
+  display:flex;flex-direction:column;gap:4px;min-width:0;min-height:200px;padding:10px;
+  background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  cursor:pointer;overflow:hidden;
+  transition:border-color .15s ease,transform .12s ease,box-shadow .15s ease;
+}
+.sch-day:hover{border-color:var(--green-700);box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+.sch-day.today{border-color:var(--gold-500);background:var(--gold-50,var(--ivory-50))}
+.sch-day.is-sel{border-color:var(--green-700);box-shadow:0 0 0 2px var(--green-100)}
+.sch-day:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:1px}
+
+/* 月视图：7 列整月网格（照客户端 `.cal` / `.cal-head` / `.cal-cell`） */
+.sch-scroll{overflow-x:auto;padding-bottom:4px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;min-width:520px;
+  grid-auto-rows:min-content;align-content:start}
+.cal-head{text-align:center;font-size:12px;font-weight:650;color:var(--ink-3);padding:4px 0}
+.cal-cell{
+  display:flex;flex-direction:column;gap:3px;min-width:0;min-height:92px;padding:6px;
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  cursor:pointer;overflow:hidden;
+  transition:border-color .15s ease,transform .12s ease;
+}
+.cal-cell:hover{border-color:var(--green-700);transform:translateY(-1px)}
+.cal-cell.today{border-color:var(--gold-500);box-shadow:var(--shadow-sm)}
+.cal-cell.is-sel{border-color:var(--green-700);box-shadow:0 0 0 2px var(--green-100)}
+.cal-cell.is-out{background:transparent;border-style:dashed;color:var(--ink-3)}
+.cal-cell.is-out .cal-num{color:var(--ink-3);font-weight:550}
+.cal-cell:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:1px}
+.cal-num{font-size:12.5px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.cal-wd{font-size:12px;font-weight:650;color:var(--ink-2)}
+.sch-day.today .cal-wd,.cal-cell.today .cal-num{color:var(--gold-600)}
+.cal-ev{
+  display:block;min-width:0;
+  padding:1px 5px;border-left:2px solid var(--green-700);border-radius:4px;
+  background:var(--green-50);font-size:11.5px;color:var(--ink-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.cal-cell.is-out .cal-ev{opacity:.55}
+.cal-more{font-size:11px;color:var(--ink-3)}
+.cal-none{font-size:11.5px;color:var(--ink-3)}
+
+/* 年视图：12 个月小月历缩略（照客户端 `.cal-year` / `.cal-mini` / `.mini-grid`） */
+.cal-year{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.cal-year[hidden]{display:none}
+.cal-mini{min-width:0;background:var(--white);border:1px solid var(--border);
+  border-radius:var(--radius);padding:10px}
+.mini-head{
+  display:block;width:100%;padding:2px 0;background:transparent;border:0;text-align:left;
+  font-size:13px;font-weight:650;color:var(--ink-2);border-radius:6px;
+}
+.mini-head:hover{color:var(--green-700);text-decoration:underline}
+.mini-head:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:1px}
+.mini-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-top:8px}
+.mini-grid i{position:relative;font-style:normal;font-size:10.5px;line-height:1.45;text-align:center;
+  border-radius:6px;color:var(--ink-3);min-width:0;overflow:hidden;padding-bottom:3px}
+.mini-grid i.mini-wd{font-size:10px;color:var(--ink-3);opacity:.75}
+.mini-grid i.is-empty{visibility:hidden}
+.mini-grid i.mini-day.has{background:var(--green-100);color:var(--green-800);font-weight:700;cursor:pointer}
+.mini-grid i.mini-day.has:hover{background:var(--green-800);color:var(--white)}
+.mini-grid i.mini-day.today{outline:2px solid var(--gold-500);outline-offset:-2px}
+.mini-grid i.mini-day.is-sel{box-shadow:inset 0 0 0 2px var(--green-700)}
+.mini-dots{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:1px;
+  text-decoration:none}
+.mini-dot{display:block;width:3px;height:3px;border-radius:50%;background:var(--green-800)}
+.mini-grid i.mini-day.has:hover .mini-dot{background:var(--white)}
+
+/* 当天安排卡片（点日历任意一天弹出） */
+.sch-day-card{width:100%;max-width:560px;max-height:80vh;overflow-y:auto;margin:0}
+
+.tt-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tt-tag{
+  display:inline-flex;align-items:baseline;gap:6px;max-width:100%;padding:2px 10px;
+  border:1px solid var(--border);border-radius:999px;background:var(--green-50);
+  font-size:12px;min-width:0;
+}
+.tt-tag__k{color:var(--ink-3)}
+.tt-tag__v{color:var(--ink);overflow-wrap:anywhere}
+
+.lesson-group{padding:12px 14px;margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius)}
+.lesson-group:last-child{margin-bottom:0}
+.lesson-group__name{margin-bottom:8px;font-size:13.5px;font-weight:700;color:var(--green-800);overflow-wrap:anywhere}
+
+/* ---------- 表格 ---------- */
+
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+.rows{width:100%;border-collapse:collapse;font-size:13.5px}
+.rows th{
+  padding:8px 12px;border-bottom:1px solid var(--border);color:var(--ink-3);
+  font-size:12px;font-weight:650;letter-spacing:.04em;text-align:left;white-space:nowrap;
+}
+.rows td{padding:9px 12px;border-bottom:1px solid var(--ivory-200);vertical-align:top;overflow-wrap:anywhere}
+.rows tr:last-child td{border-bottom:0}
+.rows tbody tr:hover{background:var(--ivory-50)}
+.row--clickable{cursor:pointer}
+.row--clickable:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:-3px}
+
+/* ---------- 设置页的折叠诊断区（技术细节默认收起，普通用户不必看到）---------- */
+
+details.card.diag{padding:0}
+details.card.diag>summary{
+  cursor:pointer;list-style:none;padding:14px 16px;margin:0;
+  font-size:14px;font-weight:650;color:var(--ink);display:flex;align-items:center;gap:8px;
+}
+details.card.diag>summary::-webkit-details-marker{display:none}
+details.card.diag>summary::before{content:'▸';color:var(--ink-3);font-size:12px}
+details.card.diag[open]>summary::before{content:'▾'}
+details.card.diag[open]>summary{border-bottom:1px solid var(--border)}
+details.card.diag>summary:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:-3px}
+details.card.diag>p.footnote{padding:0 16px;margin:10px 0 0}
+.diag__block{padding:12px 16px;border-top:1px solid var(--ivory-200)}
+.diag__block:first-of-type{border-top:0}
+.diag__block .card-title{margin-bottom:6px}
+
+/* ---------- 课表空态：还没选教学组（不给全年级候选课表）---------- */
+
+/* 这张卡是塞进 #tt-week.tt-grid（display:grid，8 列）里的，横跨整行免得被挤在第 1 格里 */
+#tt-week>.nopick{grid-column:1 / -1;min-width:0;margin-bottom:0}
+.card.nopick{border-left:3px solid var(--green-700)}
+.nopick__lede{margin:2px 0 10px;font-size:14px;font-weight:600;color:var(--ink);line-height:1.7}
+.nopick__notes{margin:0 0 4px 18px;padding:0;color:var(--ink-2);font-size:13px;line-height:1.9}
+.nopick__notes li{margin:2px 0;overflow-wrap:anywhere}
+.nopick__tools{margin-top:12px;flex-wrap:wrap;gap:10px}
+.nopick__picker{margin-top:14px;padding-top:12px;border-top:1px dashed var(--border)}
+/* 同页只有一个选课界面：模态打开时课表里这张卡的选课列表收起（[hidden] 是权威开关） */
+.nopick__picker[hidden]{display:none}
+
+/* ---------- 选课界面（按科目分组，照 PHL Lite 样式）---------- */
+
+.pick-filter{
+  width:100%;margin-bottom:12px;padding:8px 12px;
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--white);font-size:13.5px;
+}
+.pick-list{max-height:420px;overflow-y:auto;padding-right:4px}
+.fold-head{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;
+  cursor:pointer;border-radius:var(--radius-sm);
+  transition:background-color .15s ease;
+}
+.fold-head:hover{background:var(--ivory-100)}
+.tri{font-size:12px;color:var(--ink-3);flex:none}
+.pick-grow{flex:1;min-width:0}
+.pick-grow b{font-size:14px}
+.pick-grow .rooms{color:var(--ink-3);font-size:12.5px;margin-left:4px}
+.fold-body{padding-left:26px}
+.fold-body.hidden{display:none}
+.subject-row{
+  display:flex;align-items:flex-start;gap:8px;padding:8px 12px;
+  border-radius:var(--radius-sm);cursor:pointer;
+  transition:background-color .15s ease;
+}
+.subject-row:hover{background:var(--ivory-100)}
+.subject-row input[type=checkbox]{margin-top:3px;flex:none}
+.subject-row .pick-grow{flex:1;min-width:0}
+.subject-row .pick-grow b{font-size:13.5px}
+.subject-row .pick-grow .rooms{color:var(--ink-3);font-size:12.5px;display:block;margin-top:2px}
+.subject-row.wc{opacity:.9;cursor:default}
+.subject-row.wc:hover{background:transparent}
+/* 「全班必修（自动包含，不用选）」区块：没有复选框，不表现成"用户勾了它" */
+.pick-whole{margin:10px 0 0;padding:8px 0 0;border-top:1px dashed var(--border)}
+.pick-whole__head{display:flex;flex-direction:column;gap:2px;padding:0 8px 6px}
+.pick-whole__head b{font-size:13px;color:var(--green-700)}
+.pick-whole__head .rooms{color:var(--ink-3);font-size:12px;line-height:1.7}
+.pick-whole__row{cursor:default}
+.wc-badge{flex:none;font-size:11px;font-weight:650;color:var(--green-700);background:var(--green-50);
+  border:1px solid var(--border);border-radius:999px;padding:1px 8px;margin-top:2px}
+
+/* ---------- 邮箱 ---------- */
+
+.mail-read{overflow:auto;margin:0}
+.mail-view{padding:0}
+.mail-view__head{margin-bottom:12px}
+.mail-view__subject{font-size:16px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}
+.mail-view__meta{margin-top:4px;font-size:12.5px;color:var(--ink-3);overflow-wrap:anywhere}
+.mail-view__body{
+  padding-top:12px;border-top:1px dashed var(--border);font-size:13.5px;
+  white-space:pre-wrap;                       /* 正文纯文本：保留换行，不做 HTML 解析 */
+  overflow-wrap:anywhere;max-height:46vh;overflow-y:auto;
+}
+.mail-view__row{font-size:13.5px;color:var(--ink-2);overflow-wrap:anywhere}
+.mail-view__row.is-error{color:var(--wine-700)}
+.mail-view__foot{margin-top:10px;font-size:12.5px;color:var(--ink-3)}
+/* 消息正文末尾那条「重试」用的间距。**不要作用到正文顶部的操作条**：
+   `.mail-view .ghost`（0,2,0）比 `.mail-actions button`（0,1,1）更具体，会给里面的
+   「转发」加上 10px 顶边距 —— 实测 回复 top=137 / 转发 top=142（两个按钮都定高 32px
+   之后仍差 5px，就是被这条顶下去的）。用户看到的正是"回复和转发没对齐"。
+   用 `:not(.mail-actions *)` 把操作条排除掉，比 !important 干净。 */
+.mail-view .ghost:not(.mail-actions *){margin-top:10px}
+
+/* ③ 邮件卡片与"已同步的邮箱账号"卡片之间的间距。
+   宽屏下这张「已同步的邮箱账号」刻意留在折叠线以下（见上面 #mail-split{min-height:76vh}）：
+   用户的原话是"当前登录的那个卡片可以藏在屏幕下面，要往下滑才能看到"。
+   所以这里的间距给足一点，滚下去时不会和邮件区粘在一起。 */
+.mail-split+.card{margin-top:var(--gap,16px)}
+
+.mail-card{
+  display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 14px;
+  margin-bottom:10px;border:1px solid var(--border);border-radius:var(--radius);background:var(--white);
+}
+.mail-card:last-child{margin-bottom:0}
+.mail-card__main{flex:1;min-width:150px}
+.mail-card__user{font-weight:600;overflow-wrap:anywhere}
+.mail-card__sub{font-size:12.5px;color:var(--ink-3);overflow-wrap:anywhere}
+.secret{
+  font-family:ui-monospace,Consolas,monospace;font-size:13px;color:var(--ink-3);
+  letter-spacing:.06em;overflow-wrap:anywhere;
+}
+.secret.is-shown{color:var(--ink)}
+
+/* ---------- AI ---------- */
+
+.ai-ctx{
+  display:grid;grid-template-columns:minmax(64px,88px) minmax(0,1fr);gap:12px;
+  padding:12px 14px;margin-bottom:14px;border:1px solid var(--border);
+  border-radius:var(--radius);background:var(--white);box-shadow:var(--shadow-sm);
+}
+.ai-ctx__k{font-size:13px;font-weight:600;color:var(--ink-2)}
+.ai-ctx__v{min-width:0;font-size:13.5px;color:var(--ink);overflow-wrap:anywhere}
+
+.ai-log{
+  max-height:min(46vh,460px);overflow-y:auto;overflow-x:hidden;padding:8px;margin-bottom:14px;
+  border:1px solid var(--border);border-radius:var(--radius);background:var(--ivory-100);
+}
+.ai-log .empty{margin:6px}
+.msg{
+  max-width:min(760px,100%);min-width:0;padding:10px 14px;margin:0 0 10px;
+  background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+}
+.msg:last-child{margin-bottom:0}
+.msg--user{margin-left:auto;background:var(--green-50)}
+.msg__head{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;font-size:12px;font-weight:650;color:var(--ink-3)}
+.msg__body{font-size:13.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg__body.is-error{color:var(--wine-700)}
+.msg__meta{
+  margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);
+  font-size:12px;color:var(--ink-3);overflow-wrap:anywhere;
+}
+
+.ai-wait{
+  display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;padding:10px 14px;
+  background:var(--green-50);border:1px dashed var(--border);border-radius:var(--radius-sm);
+  font-size:13.5px;color:var(--ink-2);
+}
+.ai-wait[hidden]{display:none}
+.spinner{
+  width:14px;height:14px;border:2px solid var(--green-100);border-top-color:var(--green-700);
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){
+  .spinner{animation:none}
+  .view.active{animation:none}
+  .toast{animation:none}
+}
+
+.compose{display:grid;gap:12px}
+.compose textarea{
+  width:100%;min-height:76px;padding:10px 12px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);background:var(--white);color:var(--ink);
+  font:inherit;font-size:13.5px;resize:vertical;
+}
+.compose__actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.compose__count{margin-left:auto;font-size:12.5px;color:var(--ink-3)}
+
+.ai-unconf{
+  margin-top:14px;padding:14px 16px;background:var(--gold-100);
+  border:1px solid var(--gold-500);border-radius:var(--radius);
+}
+.ai-unconf[hidden]{display:none}
+.ai-unconf__links{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 0}
+
+/* ==========================================================================
+   以下组件与 PHL Lite 的「我的课表 / 我的课程 / 平和邮箱」逐条对齐
+   （类名 / 数值都取自 D:\phl-lite-dev\ui\styles.css 的同名规则；页面版式 1:1）
+   ========================================================================== */
+
+/* ---------- 我的课表：周课表网格（PHL: .tt-grid / .tt-head / .tt-time / .tt-cell / .tt-lesson）---------- */
+
+.tt-grid{position:relative;display:grid;grid-template-columns:62px repeat(7,1fr);gap:5px;
+  align-items:stretch;margin-bottom:0;min-width:640px;animation:view-in .25s ease both}
+@keyframes view-in{from{opacity:0;transform:translateY(6px) scale(.995)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tt-grid{animation:none}}
+#tt-body{overflow-x:auto;padding-bottom:4px}          /* 窄屏：课表整体横向滚动，不挤扁 */
+.tt-head{font-size:12.5px;font-weight:650;color:var(--ink-2);text-align:center;padding:4px 0}
+.tt-head.today{color:var(--gold-600)}
+.tt-corner{background:var(--ivory-100);border-radius:8px}
+/* 工具条上的「已连接」：只写四个字 + 一个绿点。
+   账号名 / 教学组清单 / 「隐藏了 N 条」这类技术细节一律不在这里说（选课说明在选课面板里）。 */
+.tt-conn{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--green-700);
+  font-weight:600;white-space:nowrap}
+.tt-conn[hidden]{display:none}
+.tt-conn__dot{width:7px;height:7px;border-radius:50%;background:var(--green-700);flex:none}
+/* 连堂块：直接放进 #tt-week 网格、跨两行（塞进 .tt-cell 里 grid-row 是无效的，
+   那会让第二行整行空白）—— 盖住被跨过的那几行空格，视觉上就是一张更高的课卡。
+   真实数据（EduPage currenttt）里连堂就是**一张卡跨两节**（12:45–14:10），
+   所以这张卡同时是「跨节课卡」与「旧式两卡合一的合并卡」。 */
+#tt-week>.tt-lesson.tt-span{display:flex;flex-direction:column;justify-content:center;
+  align-self:stretch;min-height:0;z-index:1}
+/* 国家必修区块（课表上方的说明卡）：全班必修 + 国家理科，始终显示、不用勾 */
+#tt-week>.card.tt-national{grid-column:1 / -1;min-width:0;margin-bottom:10px;
+  border-left:3px solid var(--gold-600)}
+#tt-week>.card.tt-national .card-title{color:var(--green-700)}
+/* 同一时段多门并行课：默认只给一格摘要，点开才铺开整份列表 */
+.tt-cell--multi{gap:3px}
+.tt-par-sum{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;cursor:pointer;
+  background:var(--ivory-100);border:1px dashed var(--border);border-radius:6px;padding:4px 6px;
+  font:inherit;font-size:11.5px;color:var(--ink-2);min-width:0}
+.tt-par-sum:hover{border-color:var(--green-700);color:var(--ink)}
+.tt-par-sum b{font-size:12px;color:var(--green-700)}
+.tt-par-sum .rm{color:var(--ink-3);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.tt-par-sum:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:1px}
+.tt-par-list{display:flex;flex-direction:column;gap:3px;flex:1;min-height:0}
+.tt-par-list[hidden]{display:none}
+.tt-time{display:flex;flex-direction:column;justify-content:center;text-align:right;
+  padding-right:6px;color:var(--ink-3);font-size:11px;font-variant-numeric:tabular-nums}
+.tt-time b{font-size:12px;color:var(--ink-2)}
+.tt-time.rest{color:var(--ink-3)}
+.tt-cell{background:var(--white);border:1px solid var(--border);border-radius:8px;
+  padding:3px;display:flex;flex-direction:column;gap:3px;min-height:46px;min-width:0;
+  animation:rise .25s ease both}
+.tt-cell.rest{background:var(--ivory-100)}
+.tt-restbar{background:var(--ivory-100);border:1px dashed var(--border);border-radius:8px;
+  padding:6px 12px;font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:8px}
+.tt-lesson{background:var(--tbg,var(--green-50));border-left:3px solid var(--tfg,var(--green-700));
+  border-radius:6px;padding:4px 6px;font-size:11.5px;color:var(--tfg,var(--ink));min-width:0;
+  flex:1;min-height:0;overflow:hidden;cursor:pointer;
+  transition:background-color .15s ease,color .15s ease,border-color .15s ease,
+    transform .12s ease,box-shadow .15s ease}
+.tt-lesson:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,50,40,.1)}
+.tt-lesson:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:1px}
+.tt-lesson b{display:block;font-size:12px}
+.tt-lesson.cancelled{opacity:.5;text-decoration:line-through}
+.tt-lesson .rm{color:inherit;opacity:.72;font-size:10.5px}
+/* 兼容层：屏外语义视图（不影响版式，只为脚本/测试保留按天分组的条目） */
+.tt-compat{display:flex;flex-direction:column;gap:0;height:0;overflow:hidden;position:absolute;
+  left:0;top:0;width:1px;clip-path:inset(50%);pointer-events:none}
+#tt-body{position:relative}
+.wait-note{font-size:12px;color:var(--green-700);background:var(--green-50);
+  border:1px solid var(--border);border-radius:999px;padding:2px 10px}
+/* 当前时间指示线：横贯整张周课表（照客户端 PHL Lite 的 #tt-nowline）。
+   top 由 JS 按「今天这一刻在所在节次里的比例」算出来（用所在行的实际 rect，不写死行高）；
+   翻到别的周 / 不在校时段内 → 两个元素都不画。绝对定位挂在 #tt-week 上（.tt-grid 是
+   position:relative），left/right 覆盖整表，pointer-events:none 不挡课卡点击。 */
+#tt-nowline{position:absolute;left:0;right:0;height:2px;z-index:6;pointer-events:none;
+  background:var(--green-700);border-radius:1px;box-shadow:0 0 4px rgba(42,114,90,.55)}
+#tt-nowline::before{content:"";position:absolute;left:-3px;top:-3px;width:8px;height:8px;
+  border-radius:50%;background:var(--green-700);box-shadow:0 0 0 2px var(--green-100)}
+/* 同一条线右端的小标签：当前时刻（HH:MM） */
+#tt-clock{position:absolute;right:0;z-index:7;pointer-events:none;padding:0 6px;
+  border-radius:999px;background:var(--green-700);color:var(--white);
+  font-size:10.5px;font-variant-numeric:tabular-nums;line-height:16px;white-space:nowrap}
+
+/* ---------- 「⬇ 导出课表」小下拉（站内弹层，不用 window.confirm/prompt）----------
+   菜单绝对定位在按钮下方、右对齐：窄屏时不会把工具条撑宽（.row-tools 自己会换行），
+   菜单本身限宽 min(280px, 100vw-24px) 并在超出视口时由 JS 翻到左侧（见 bindTimetableTools）。 */
+.tt-export{position:relative;display:inline-flex}
+/* 禁用态由外层 .tt-export 接住点击后再给提示（disabled 的元素不派发 click，
+   所以这里让它不吞事件；提示文案见 bindTimetableTools 里的 clickedExport）。 */
+.tt-export>button[disabled]{pointer-events:none}
+.tt-export__menu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;
+  min-width:230px;max-width:min(300px,calc(100vw - 24px));
+  display:flex;flex-direction:column;gap:2px;padding:6px;
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 10px 28px rgba(26,50,40,.16);animation:rise .12s ease both}
+.tt-export__menu[hidden]{display:none!important}
+.tt-export__item{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;
+  border:0;background:transparent;border-radius:7px;padding:7px 9px;cursor:pointer;
+  font:inherit;font-size:13px;color:var(--ink);white-space:normal}
+.tt-export__item:hover{background:var(--green-50);color:var(--green-800)}
+.tt-export__item:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:-2px}
+.tt-export__item[disabled]{opacity:.5;cursor:not-allowed}
+.tt-export__hint{font-size:11px;color:var(--ink-3);line-height:1.35}
+@media (max-width:560px){
+  /* 手机上菜单贴右边 → 可能顶出左边界：改成占满父级宽度并允许换行文字 */
+  .tt-export__menu{right:auto;left:0;min-width:0}
+}
+
+/* ---------- 我的课程：课程行 / IB Core 卡 / 作业行 ---------- */
+
+/* 课程列表与作业列表都是 .list（竖排 flex），行是 .item —— 与 PHL 完全同构 */
+#mb-courses,#mb-tasks{display:flex;flex-direction:column;gap:8px}
+#mb-courses>.note,#mb-tasks>.note{margin:0}
+.course-row{cursor:pointer}
+.course-row:hover{border-color:var(--green-700);transform:translateY(-1px)}
+.course-row .co-name{font-weight:650}
+.course-row .co-name small,.course-row .grow small{display:block;font-weight:400;color:var(--ink-3);font-size:12px}
+.core-card{cursor:pointer}
+.core-card:hover{border-color:var(--gold-600);transform:translateY(-1px)}
+.core-card:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:2px}
+.co-core{margin-bottom:16px}
+/* 课程活动（通知/私信/讨论）卡片 */
+.mb-activity{margin-bottom:20px}
+.mb-activity .panel__body{max-height:220px;overflow-y:auto}
+.mb-activity .empty{color:var(--ink-3);font-size:13px;padding:8px 0}
+.mb-activity .footnote{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);
+  color:var(--ink-3);font-size:11.5px}
+.mb-notif-item,.mb-msg-item,.mb-disc-item{padding:8px 0;border-bottom:1px solid var(--ivory-100)}
+.mb-notif-item:last-child,.mb-msg-item:last-child,.mb-disc-item:last-child{border-bottom:0}
+.mb-notif-item__title,.mb-msg-item__title,.mb-disc-item__title{font-weight:600;font-size:13px;
+  color:var(--ink);margin-bottom:2px}
+.mb-notif-item__meta,.mb-msg-item__meta,.mb-disc-item__meta{font-size:11.5px;color:var(--ink-3)}
+.mb-msg-item__sender{font-weight:600;color:var(--ink-2)}
+.mb-disc-item__course{color:var(--green-700);font-weight:600}
+.item.ddl-item{transition:transform .12s ease}
+/* 已过期（排在列表下方）：灰底/暗色，与客户端 PHL Lite 同款观感 */
+.item.ddl-item.past-due{opacity:.85;background:var(--ivory-200);color:var(--ink-2)}
+.item.ddl-item.past-due .dim{color:var(--ink-3)}
+/* 最近 2 天内到期（含刚过去 2 天）：加粗，跟客户端一致 */
+.item.ddl-item.urgent{font-weight:750}
+.item.ddl-item.urgent .dim{font-weight:600}
+/* 截止日期是按「周几」推算的（ManageBac 只给了 Thursday at 12:00 PM）→ 标明为推算 */
+.item.ddl-item .inferred{color:var(--gold-600);font-size:11px;margin-left:2px}
+.item.ddl-item .grow{white-space:normal}
+.list-sep{display:flex;align-items:center;gap:10px;margin:14px 0 6px;
+  color:var(--ink-3);font-size:12px;font-weight:650;letter-spacing:.4px}
+.list-sep::after{content:"";flex:1;height:1px;background:var(--border)}
+.badge.past{background:var(--ivory-200);color:var(--ink-3)}
+/* 作业条目的上下移动箭头（PHL 的 ▲▼ 组件，同款数值） */
+.move-btns{display:flex;flex-direction:column;gap:1px;flex-shrink:0}
+.move-btn{border:0;background:transparent;color:var(--ink-3);font-size:9px;height:11px;
+  line-height:11px;padding:0 3px;cursor:pointer;opacity:.65;border-radius:3px}
+.move-btn:hover{opacity:1;color:var(--green-800);background:var(--green-50);transform:none}
+
+/* PHL 的 chip / tabbar / tabbtn 组件（本页与课程卡等处共用，同款数值） */
+.chip-wrap{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--green-50);border:1px solid var(--border);border-radius:99px;
+  padding:4px 12px;font-size:12.5px;color:var(--green-800);cursor:pointer;user-select:none;
+  touch-action:pan-y;display:inline-flex;align-items:center;gap:6px;
+  transition:background-color .15s ease,color .15s ease,border-color .15s ease,
+    transform .12s ease,box-shadow .15s ease}
+.chip.on{background:var(--green-800);color:var(--white)}
+.chip:hover{transform:translateY(-1px)}
+.tabbar{display:flex;gap:6px;margin-bottom:10px;border-bottom:1px solid var(--border);
+  padding-bottom:8px}
+.tabbtn{background:transparent;color:var(--ink-2);padding:5px 12px;border-radius:99px}
+.tabbtn.on{background:var(--green-800);color:var(--white)}
+.tabbtn:hover{transform:none}
+
+/* 兼容层：等内容的表格语义视图（视觉收成 0 尺寸，屏幕阅读器仍可读） */
+.sr-only-table{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);
+  margin:-1px;padding:0;border:0;white-space:nowrap}
+
+/* ---------- 平和邮箱：列表项 / 正文（PHL: .mail-item / .mail-split / .rc-bar / .mail-body）---------- */
+
+/* 左右两栏都**绝对定位**在固定高度的格子里（top/bottom:0）。
+   为什么不用常规流：`#mail-heads` 里是 640 封邮件头的 `.list`，鼠标滚轮滑过它时
+   Blink 的"滑动溢出"是**滚祖先而不是滚它**（Chromium 的行为），于是整页被推出
+   一个几万像素高的滚动区 —— 实测 `document.scrollingElement.scrollHeight` =
+   **57162px**（视口 900px），用户看到的就是"右边两根滚动条，往下滑一片空白"。
+   改成"`#view-mail` 自己不滚、两栏在格子里各滚各的"之后根滚动高度回到 900px
+   （已用真浏览器实测）。
+   高度来源：`.view.active` 是 `.main` 的 flex 子项（flex:1 1 auto + min-height:0）
+   → `#view-mail` → `#mail-split{flex:1 1 auto;min-height:0}`。**只写 height:100%
+   会在百分比无法解析时塌成 0**（实测过），所以这里用 flex 拿剩余高度。
+   `min-height:0`：grid/flex 子项默认 min-height:auto 会被内容撑高，必须显式压掉。
+   窄屏（≤900px）改回单列常规流，见下面的媒体查询。 */
+.mail-split{display:grid;grid-template-columns:minmax(280px,1fr) 1.618fr;gap:16px;position:relative;
+  flex:1 1 auto;min-height:0;overflow:hidden;contain:paint}
+/* 两栏宽度按**黄金比**分：正文 61.8%、列表 38.2%（用户 2026-09-21 要求，不再一比一）。
+   子项是绝对定位（见上面的注释），所以宽度用 calc 从容器里扣掉 16px 间隙再乘比例，
+   口径与 grid 轨道一致；`max(280px,…)` 给列表留下限。窄屏（≤900px）改回单列。 */
+.mail-split>.card{position:absolute;top:0;bottom:0;min-width:0;min-height:0;margin:0}
+.mail-split>.card:first-child{left:0;width:max(280px, calc((100% - 16px) * .382))}
+.mail-split>.card:last-child{left:calc(max(280px, calc((100% - 16px) * .382)) + 16px);right:0}
+.mail-list{overflow:auto;margin:0;padding:8px}
+.mail-item{padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;
+  transition:background-color .15s ease,color .15s ease,border-color .15s ease,
+    transform .12s ease,box-shadow .15s ease}
+.mail-item:hover{background:var(--ivory-100)}
+.mail-item.on{background:var(--green-50);box-shadow:inset 0 0 0 1px var(--green-700)}
+.mail-item.unread{font-weight:650}
+.mail-item:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:-3px}
+.mail-item .subj{font-size:13.5px;overflow-wrap:anywhere}
+.mail-item .meta{font-size:12px;color:var(--ink-3);overflow-wrap:anywhere}
+.mail-read{overflow:auto;margin:0}
+.mail-read h3{margin:4px 0 10px}
+.rc-bar{font-size:12px;color:var(--ink-3);margin:4px 0;line-height:1.8;overflow-wrap:anywhere}
+.rc-item{display:inline-block;background:var(--ivory-100);border-radius:4px;padding:1px 6px;margin:1px 2px}
+.att-bar{margin:6px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+/* 附件链接是真的 <a download>：可点、可右键另存、可拖走；hover 给明确反馈 */
+a.att-dl{font-size:12px;padding:3px 8px;cursor:pointer;text-decoration:none;
+  border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--white);
+  color:var(--green-800);max-width:100%;overflow-wrap:anywhere}
+a.att-dl:hover{background:var(--green-50);border-color:var(--green-700);text-decoration:underline}
+a.att-dl:focus-visible{outline:3px solid rgba(42,114,90,.4);outline-offset:2px}
+.att-dl{font-size:12px;padding:3px 8px;cursor:default}
+/* 列表里带附件的那封：主题后面挂个小回形针 */
+.mail-item .att-clip{color:var(--ink-3);font-size:11px;margin-left:4px}
+.mail-body{white-space:pre-wrap;word-break:break-word;font-size:13.5px}
+.mail-body a{color:var(--green-700)}
+.mail-body-wrap{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+.mail-body-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.mail-body-tools .ghost{margin-top:0}
+.mail-img-btn{font-size:12.5px;padding:4px 10px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:99px;overflow:hidden;
+  background:var(--white)}
+.seg__btn{border:0;background:transparent;font:inherit;font-size:12.5px;color:var(--ink-3);
+  padding:4px 12px;cursor:pointer}
+.seg__btn.is-on{background:var(--green-50);color:var(--green-800);font-weight:650}
+.seg__btn:focus-visible{outline:3px solid rgba(42,114,90,.35);outline-offset:-3px}
+/* HTML 正文：沙箱 iframe —— `sandbox="allow-same-origin"`、**不带 allow-scripts**，
+   所以邮件里的 <script> / onerror 永不执行（正文本身按用户要求原样渲染、不做消毒）。
+   allow-same-origin 是必需的：父页面要读 contentDocument 量高度（见 app.js fitMailFrame，
+   上限 MAIL_FRAME_MAX_H=3600，超出则内部滚动）；量不到时退回落高度 + 内部滚动。 */
+.mail-frame{display:block;width:100%;border:0;min-height:60px;background:var(--white);
+  border-radius:var(--radius-sm)}
+.mail-body-wrap .mail-text-body{border-top:1px dashed var(--border);padding-top:10px;
+  max-height:52vh;overflow-y:auto}
+
+/* ---------- 可用性：重试条 / 加载提示 / 骨架屏 ---------- */
+
+.retry-bar{display:flex;align-items:center;gap:10px;margin-top:12px}
+.empty .retry-bar{margin-top:10px}
+/* 「EduPage 正在后台抓」这一态：中性提示（不是错误），给一句说明 + 刷新按钮 */
+.empty.pending-hint{color:var(--ink-2);border-left:3px solid var(--green-700);
+  padding-left:12px;background:var(--ivory-100);border-radius:var(--radius-sm);padding:10px 14px}
+.empty.pending-hint .note{margin:6px 0 0}
+.skel{background:linear-gradient(90deg,var(--ivory-100),var(--ivory-200),var(--ivory-100));
+  border-radius:8px;animation:skel 1.2s ease-in-out infinite;min-height:14px}
+.skel-line{height:14px;margin:8px 0}
+.skel-card{height:88px;margin:8px 0}
+@keyframes skel{0%{opacity:.65}50%{opacity:1}100%{opacity:.65}}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
+.src-steps{margin:8px 0 0 20px;padding:0;color:var(--ink-2);font-size:13.5px;line-height:1.9}
+.src-steps code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+
+/* ---------- 提示条（toast） ---------- */
+
+.toast{
+  position:fixed;left:50%;bottom:32px;z-index:100;max-width:min(480px,calc(100vw - 32px));
+  padding:12px 20px;border-radius:var(--radius-sm);background:var(--green-950);color:var(--ivory-50);
+  font-size:13.5px;box-shadow:var(--shadow-md);transform:translateX(-50%);
+  animation:toast-in .22s ease;
+}
+.toast[hidden]{display:none}
+@keyframes toast-in{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+
+/* ==========================================================================
+   响应式
+   ≤1100px：首页 hero 收成两栏；年视图改 3 列
+   ≤900px ：侧栏收起，导航变顶部标签条（同一份 DOM，不重复、不塌成竖排字）
+   ≤760px ：周/月日历整体横向滚动（格子不被挤扁成一条）
+   ≤560px ：单列；年视图 2 列
+   ========================================================================== */
+
+@media (max-width:1100px){
+  .hero{grid-template-columns:1fr 1fr}
+  .hero>.card:last-child{grid-column:1/-1}
+  .cal-year{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* 窄屏：日历给格子一个最小宽度，滚动条落在容器里 —— 页面本身绝不横向溢出。
+   周视图的七列不能压得太窄（每格只剩「0…」＝白画，实测 390px 下就是那样）：
+   给最小列宽 + 容器横向滚动，宁可滚也不要不可读。 */
+@media (max-width:760px){
+  .sch-scroll{padding-bottom:6px}
+  .sch-week{grid-template-columns:repeat(7,minmax(96px,1fr));overflow-x:auto;padding-bottom:6px}
+  .sch-day{min-height:180px}
+  .cal{min-width:560px}
+}
+
+@media (max-width:900px){
+  #app{flex-direction:column;height:auto;min-height:100%}
+  .sidebar{
+    width:auto;padding:10px 12px;overflow:visible;
+    background:linear-gradient(180deg,var(--green-900),var(--green-950));
+  }
+  .sidebar.is-collapsed #tabs,.sidebar.is-collapsed .side-foot{display:none}
+  .logo{padding:2px 4px 10px}
+  #tabs{flex-direction:row;flex-wrap:wrap;gap:6px;flex:none}
+  #tabs .tab{padding:8px 12px;font-size:13.5px}
+  .side-foot{margin-top:10px;border-top:0;padding-top:0}
+  .side-user__name{flex:0 1 auto}
+  .main{overflow:visible;padding:0 16px 40px}
+  .topbar{height:auto;padding:12px 0;flex-wrap:wrap;gap:10px}
+  .topbar h1{font-size:19px}
+  .icon-btn{display:inline-flex;align-items:center;justify-content:center}
+  .grid-2{grid-template-columns:minmax(0,1fr)}
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .hero>.card:last-child{grid-column:auto}
+  .hero-duo{grid-template-columns:1fr 1fr}
+  .sched-form{grid-template-columns:minmax(0,1fr)}
+  .kv__row{grid-template-columns:minmax(0,1fr);gap:2px}
+  .ai-ctx{grid-template-columns:minmax(0,1fr);gap:2px}
+  /* 窄屏：整页改成自然滚动，邮箱回到常规流（绝对定位那套是给"固定视口"的宽屏用的）。
+     `.mail-items` 给个上限，否则 640 封同样能把页面撑成几万像素高。 */
+  .mail-split{position:static;height:auto;overflow:visible;contain:none;flex:none;
+    grid-template-columns:minmax(0,1fr);gap:12px}
+  .mail-split>.card{position:static;width:auto;left:auto;right:auto;margin-bottom:12px}
+  .mail-read{max-height:70vh}
+  .mail-items{max-height:60vh;overflow-y:auto}
+}
+
+@media (max-width:700px){
+  .mail-split{grid-template-columns:minmax(0,1fr)}
+  /* 窄屏：列表与正文互斥显示（点开邮件 → 显示正文 + 「返回列表」） */
+  #view-mail.show-detail .mail-list{display:none}
+  #view-mail:not(.show-detail) .mail-read{display:none}
+  /* 手机版正文同一颗沙箱 iframe（同样不带 allow-scripts）：满宽、无边框，高度仍由 JS 量后写死 */
+  .mail-frame{width:100%;border:0}
+}
+
+@media (max-width:560px){
+  .main{padding:0 12px 32px}
+  .topbar h1{font-size:17px}
+  #tabs .tab{padding:7px 10px;font-size:13px}
+  .big-clock{font-size:34px}
+  .hero-duo{grid-template-columns:minmax(0,1fr)}
+  .field--inline{flex:1 1 100%}
+  .compose__actions .primary,.compose__actions .ghost{flex:1 1 auto}
+  .compose__count{flex:1 1 100%;margin-left:0;text-align:right}
+  .kv__row{padding:8px 10px}
+  /* 日历：窄屏也要读得清（格子最小高度、字号不缩到看不清），横向滚动而不是压扁 */
+  .cal{min-width:520px}
+  .sch-day{min-height:170px;padding:8px}
+  .cal-cell{min-height:84px;padding:5px}
+  .cal-num{font-size:12px}
+  .cal-ev{font-size:11px}
+  .cal-year{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .cal-mini{padding:8px}
+  .picker-overlay{padding:8px}
+  .sch-day-card{max-height:88vh}
+}
+
+/* ---------- 选课模态（工具栏常驻按钮弹出） ---------- */
+
+.picker-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.45);padding:18px;
+  animation:fade .15s ease;
+}
+.picker-overlay[hidden]{display:none!important}
+.picker-modal{
+  width:100%;max-width:640px;max-height:80vh;overflow-y:auto;
+  margin:0;
+}
+.picker-modal .pick-list{max-height:52vh}
+@media (max-width:560px){
+  .picker-overlay{padding:8px}
+  .picker-modal{max-height:90vh}
+  .picker-modal .pick-list{max-height:64vh}
+}
+
+/* ---------- 设置页：修改密码 / AI 服务商 ---------- */
+
+.set-changepw-form{display:flex;flex-direction:column;gap:10px;max-width:400px}
+#set-changepw-card .field{min-width:0}
+#set-ai-providers .kv{border:1px solid var(--border);border-radius:var(--radius);padding:4px 0}
+#set-ai-providers .kv__row{padding:8px 14px}
+#set-ai-card select{min-width:0}
+#set-ai-card .row-tools{flex-wrap:wrap}
+
+/* ---------- 撰写邮件模态 ---------- */
+
+.compose-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.45);padding:18px;
+  animation:fade .15s ease;
+}
+.compose-overlay[hidden]{display:none!important}
+.compose-modal{
+  width:100%;max-width:600px;max-height:85vh;overflow-y:auto;
+  margin:0;
+}
+.compose-form{display:flex;flex-direction:column;gap:10px}
+.compose-form textarea{min-height:180px;resize:vertical}
+.compose-cc-row{margin-bottom:0}
+.compose-cc-toggle{margin-bottom:2px}
+@media (max-width:560px){
+  .compose-overlay{padding:8px}
+  .compose-modal{max-height:92vh}
+}
+
+/* ---------- 课程详情 ---------- */
+
+#mb-detail{display:flex;flex-direction:column;gap:16px}
+#mb-detail-header{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 18px;background:var(--white);border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);
+}
+#mb-detail-title{flex:1;font-size:17px;font-weight:600;color:var(--green-800)}
+.course-info{display:flex;flex-direction:column;gap:8px}
+.course-info p{margin:0;color:var(--ink-2)}
+#mb-detail-sections{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+#mb-detail-sections .card{min-height:200px}
+#mb-detail-sections .card h3{margin:0 0 12px;font-size:15px;font-weight:600;color:var(--green-800)}
+#mb-detail-sections .list{display:flex;flex-direction:column;gap:6px}
+#mb-detail-sections .item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;background:var(--ivory-50);border-radius:var(--radius-sm);
+}
+#mb-detail-sections .item .dim{color:var(--ink-3);font-size:13px}
+#mb-detail-sections .item .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mb-detail-sections .item a{text-decoration:none;color:var(--green-700)}
+#mb-detail-sections .item a:hover{text-decoration:underline}
+@media (max-width:680px){
+  #mb-detail-sections{grid-template-columns:1fr}
+}
+
+/* ---------- 邮件正文顶部的操作条（回复按钮在最上面）---------- */
+.mail-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  margin:0 0 10px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+/* 两个按钮**必须严格等高**：`.primary` 的内边距是 8px、`.ghost` 是 7px + 1px 边框，
+   常规流里只差 2px，但用户一眼就看出"回复和转发没对齐"（实测 30px vs 34px）。
+   这里统一成 32px 定高 + 横向内边距 + 居中，并给 ghost 的边框留出等量 padding，
+   这样等高、等宽基线、上下沿都对齐。 */
+.mail-actions button{display:inline-flex;align-items:center;justify-content:center;
+  height:32px;min-height:32px;padding:0 14px;line-height:1;box-sizing:border-box}
+/* `margin:0` 是必须的：上面 `.mail-view .ghost{margin-top:10px}`（给正文末尾那个
+   单独的重试按钮用的）会把 `.mail-actions` 里的「转发」往下推 10px —— 实测
+   回复 top=133 / 转发 top=138（定高之后仍差 5px），用户看到的就是"两个按钮没对齐"。 */
+.mail-actions button{margin:0}
+.mail-actions .primary{padding:0 14px}
+.mail-actions .ghost{padding:0 13px}
+
+/* ---------- 通讯录 ---------- */
+#contacts-modal .picker-modal{max-width:640px}
+#contacts-list{max-height:56vh;overflow-y:auto}
+.contacts-row{cursor:pointer}
+.contacts-row:hover{background:var(--ivory-100)}
+.contacts-row .grow{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- 撰写窗口：附件区 ---------- */
+.compose-att{display:block}
+.compose-att__row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px}
+.compose-att__list{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.compose-att__list:empty{margin-top:0}
+.compose-att__item{display:flex;align-items:center;gap:8px;
+  background:var(--ivory-100);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:5px 10px;font-size:12.5px}
+.compose-att__name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.compose-att__del{padding:0 6px;font-size:13px;line-height:1.4;color:var(--ink-3)}
+.compose-att__del:hover{color:var(--wine-700)}

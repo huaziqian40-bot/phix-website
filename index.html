@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PHIX 维修社 · 上海民办平和学校</title>
+<link rel="stylesheet" href="/static/site.css">
+<link rel="stylesheet" href="/static/copy-a.css">
+<script src="/static/ua-switch.js"></script>
+</head>
+<body>
+
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a class="brand" href="/" aria-label="phix 首页">
+      <img src="/assets/logo-transparent.png" alt="phix">
+    </a>
+    <nav class="nav" aria-label="主导航">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="/about/">关于我们</a></li>
+        <li class="nav__item">
+          <a class="nav__link nav__link--toggle" href="#products" aria-haspopup="true" aria-expanded="false">
+            产品
+            <svg class="nav__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </a>
+          <div class="dropdown">
+            <p class="dropdown__group">软件</p>
+            <a class="dropdown__item" href="/products/xinlv/">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span>心履<small>心情记录 · 网页与客户端</small></span>
+            </a>
+            <a class="dropdown__item" href="/products/phl/">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>Pinghe Launcher<small>日程与校园信息中枢</small></span>
+            </a>
+            <p class="dropdown__group">硬件</p>
+            <span class="dropdown__item dropdown__item--disabled" aria-disabled="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+              <span>敬请期待</span>
+            </span>
+          </div>
+        </li>
+        <li><a class="nav__link" href="/docs/">文档</a></li>
+        <li><a class="nav__link" href="/log/">PHIX 日志</a></li>
+      </ul>
+    </nav>
+    <div class="site-header__actions">
+      <a class="nav__link" href="/support/">服务与支持</a>
+      <a class="nav__link" href="/download/">下载</a>
+      <a class="btn btn--sm btn--primary" href="/login/" id="auth-btn">登录 / 注册</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <img class="hero__photo" src="/assets/hero-campus.jpg" alt="黄昏时分的校园，紫粉色晚霞铺满天空">
+  <div class="hero__scrim" aria-hidden="true"></div>
+  <div class="hero__content">
+    <p class="hero__kicker">{{cms:home.kicker|PHIX 维修社 · 上海民办平和学校}}</p>
+    <h1 class="hero__title hero__title--latin">{{cms:home.title|Repair,Restore,Renew.}}</h1>
+    <p class="hero__subtitle">{{cms:home.subtitle|PHIX维修社是由平和学生自主创办的社团，旨在从学生的角度出发，做便捷的校园工具。}}</p>
+    <p class="hero__tagline-en">{{cms:home.subtitle_en|Everything can be PHIXed}}</p>
+    <div class="hero__actions">
+      <a class="btn btn--primary" href="/products/phl/">{{cms:home.btn_primary|了解学习工具}}</a>
+      <!-- 「体验心履」走本站的免密跳转：已登录 phix → 带一次性码直达心履（自动登录）；
+           没登录 → soft=1 直接照常打开心履，不把人拦在登录页。见 server.py /sso/to-xinlv/ -->
+      <a class="btn btn--ghost" href="/sso/to-xinlv/?soft=1" target="_blank" rel="noopener">{{cms:home.btn_ghost|体验心履}}</a>
+    </div>
+    <p class="hero__links">
+      <a href="#products">产品一览</a>
+      <a href="/download/">下载安装包</a>
+    </p>
+  </div>
+</section>
+
+<section class="products" id="products">
+  <h2 class="products__title reveal">{{cms:home.products_title|三个产品，一种生活节奏}}</h2>
+  <div class="products__grid">
+    <article class="product-card reveal">
+      <span class="product-card__icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </span>
+      <h3 class="product-card__name">心履 <span class="product-card__tag">心情记录</span></h3>
+      <p class="product-card__desc">{{cms:home.xinlv_desc|每天一句话，把情绪轻轻放下——你的随身心情手账。}}</p>
+      <a class="product-card__cta" href="/products/xinlv/">了解更多 →</a>
+    </article>
+    <article class="product-card reveal">
+      <span class="product-card__icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </span>
+      <h3 class="product-card__name">Pinghe Launcher <span class="product-card__tag">效率中枢</span></h3>
+      <p class="product-card__desc">{{cms:home.phl_desc|课表、作业、邮箱一屏管完，校园信息不再散落各处。}}</p>
+      <a class="product-card__cta" href="/products/phl/">了解更多 →</a>
+    </article>
+    <article class="product-card reveal">
+      <span class="product-card__icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </span>
+      <h3 class="product-card__name">Pinghe Launcher Lite <span class="product-card__tag">轻量版</span></h3>
+      <p class="product-card__desc">{{cms:home.phllite_desc|轻量版：默认在本地独立运行，登录 phix 账号后可选开启云同步，适合偏好轻量功能的用户。}}</p>
+      <a class="product-card__cta" href="/download/">免费下载 →</a>
+    </article>
+  </div>
+</section>
+
+<section class="products" id="repair">
+  <h2 class="products__title reveal">维修服务：不只修电脑</h2>
+  <div class="info-block">
+    <div class="info-block__item">
+      <p class="info-block__term">能修什么</p>
+      <p class="info-block__desc">{{cms:home.repair_scope|除了做校园工具，PHIX 维修社平时也在课余帮同学修东西：耳机、充电线、台灯、文具、雨伞、小电器这类日常小件都可以拿来。能修就修；修不好的，我们会说明原因。修好的记录会写进「PHIX 日志」。}}</p>
+    </div>
+    <div class="info-block__item">
+      <p class="info-block__term">怎么找我们</p>
+      <p class="info-block__desc">{{cms:home.repair_howto|到<a href="/support/">服务与支持</a>页面的反馈表单留言，写清东西哪里坏了、能不能开机或通电、方便的时间段；我们会回复能不能修、大概需要多久。}}</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__col">
+      <img class="site-footer__logo" src="/assets/logo-transparent.png" alt="phix">
+      <p class="site-footer__blurb">{{cms:footer.blurb|上海民办平和学校 · 维修社 · 用代码装点校园生活}}</p>
+    </div>
+    <div class="site-footer__contact">
+      <p class="site-footer__heading">联系我们</p>
+      <p class="site-footer__email">📧 {{cms:footer.contact_email|norine.liu@icloud.com / huaziqian40@gmail.com}}</p>
+      <p>📞 {{cms:footer.contact_phone|18901712280/13675821816}}</p>
+      <p>💬 微信：{{cms:footer.contact_wechat|Norine2010/int_32_2147483647}}</p>
+      <p>📺 <a href="{{cms:footer.contact_bilibili|https://space.bilibili.com/1121702307}}" target="_blank" rel="noopener">B站主页</a></p>
+    </div>
+    <nav class="site-footer__links" aria-label="页脚导航">
+      <a href="/about/">关于我们</a>
+      <a href="/products/xinlv/">产品</a>
+      <a href="/download/">下载</a>
+    <a href="/log/">PHIX 日志</a></nav>
+  </div>
+  <div class="site-footer__copy">{{cms:footer.copyright|© 2026 phix}}</div>
+</footer>
+
+<script src="/static/site.js"></script>
+<script>
+checkAuth().then(u => {
+  if (u) {
+    const btn = document.getElementById('auth-btn');
+    if (btn) { btn.textContent = '个人中心'; btn.href = '/account/'; }
+  }
+});
+</script>
+</body>
+</html>

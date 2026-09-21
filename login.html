@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登录 · PHIX 维修社 · 上海民办平和学校</title>
+<link rel="stylesheet" href="/static/site.css">
+<!-- 手机版（2026-09-13）：meta 必须在 script 之前——ua-switch.js 在 head 同步执行，
+     它要读这个 meta 才知道该注入哪些页面级样式；写在后面会取不到。 -->
+<meta name="mobile-css" content="/static/mobile-products.css">
+<script src="/static/ua-switch.js"></script>
+</head>
+<body>
+
+<!-- 顶栏：与全站一致（logo 点击回首页），只留最小导航，避免和登录卡抢注意力 -->
+
+<header class="site-header site-header--minimal">
+  <div class="site-header__inner">
+    <a class="brand" href="/" aria-label="phix 首页">
+      <img src="/assets/logo-transparent.png" alt="phix">
+    </a>
+    <nav class="nav" aria-label="辅助导航">
+      <ul class="nav__list">
+        <li><a class="nav__link" href="/about/">关于我们</a></li>
+        <li><a class="nav__link" href="/docs/">文档</a></li>
+        <li><a class="nav__link" href="/log/">PHIX 日志</a></li>
+        <li><a class="nav__link" href="/download/">下载</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <img class="auth-card__logo" src="/assets/logo-transparent.png" alt="phix">
+    <h1 class="auth-card__title">欢迎回来</h1>
+    <p class="auth-card__hint">登录你的 phix 账号</p>
+    <form id="login-form">
+      <div class="field">
+        <label for="username">用户名</label>
+        <input id="username" type="text" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">密码</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn--primary">登 录</button>
+      <div id="login-msg"></div>
+    </form>
+    <p class="auth-card__switch">还没有账号？<a href="/register/">去注册</a></p>
+    <!-- 已经在心履登录过？走一次性码免密登录（心履那边签码 → 回本站兑换） -->
+    <p class="auth-card__switch">
+      已经登录过心履？<a href="https://xin-lv.com/phix/sso/start/?next=/account/">用 PHIX 账号继续</a>
+    </p>
+    <!-- 这个提示来自**非 httpOnly** 的 phix_hint cookie（只放 1 与用户名，绝不放令牌）。
+         它就是"要不要直接跳过去自动兑换"的那个判断依据。 -->
+    <p class="auth-card__switch" id="phix-hint-line" hidden></p>
+  </div>
+</div>
+
+<script src="/static/site.js"></script>
+<script>
+// 读**非 httpOnly** 的提示 cookie（只有 "1" 和用户名，没有任何令牌）：
+// 它是"本浏览器已经登录"的唯一客户端信号，用来决定要不要走免密跳转。
+(function () {
+  var raw = document.cookie || '';
+  if (!/(?:^|;\s*)phix_hint=1(?:;|$)/.test(raw)) return;
+  var m = raw.match(/(?:^|;\s*)phix_hint_user=([^;]*)/);
+  var name = '';
+  try { name = m ? decodeURIComponent(m[1]) : ''; } catch (e) { name = ''; }
+  name = name.replace(/[<>&"']/g, '');
+  var el = document.getElementById('phix-hint-line');
+  el.hidden = false;
+  el.innerHTML = '这台浏览器已登录' + (name ? '（' + name + '）' : '') +
+    '：<a href="/account/">进个人中心</a> · <a href="/app/">打开 Pinghe Launcher 网页版</a>' +
+    ' · <a href="/sso/to-xinlv/?next=/">免密打开心履</a>';
+})();
+</script>
+<script>
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const msg = document.getElementById('login-msg');
+  msg.textContent = '';
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  if (!username || !password) { msg.className = 'msg-error'; msg.textContent = '请填写用户名和密码'; return; }
+  try {
+    const { status, data } = await api('POST', '/auth/login/', { username, password });
+    if (status === 200 && data.ok !== false) {
+      const next = new URLSearchParams(location.search).get('next') || '/';
+      location.href = next;
+    } else {
+      msg.className = 'msg-error';
+      msg.textContent = data?.error?.message || '登录失败';
+    }
+  } catch (err) {
+    msg.className = 'msg-error';
+    msg.textContent = '网络错误，请稍后重试';
+  }
+});
+</script>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__col"><img class="site-footer__logo" src="/assets/logo-transparent.png" alt="phix"><p class="site-footer__blurb">{{cms:footer.blurb|上海民办平和学校 · 维修社 · 用代码装点校园生活}}</p></div>
+    <div class="site-footer__contact"><p class="site-footer__heading">联系我们</p><p>📧 {{cms:footer.contact_email|norine.liu@icloud.com/huaziqian40@gmail.com}}</p><p>📞 {{cms:footer.contact_phone|18901712280/13675821816}}</p><p>💬 微信：{{cms:footer.contact_wechat|Norine2010/int_32_2147483647}}</p><p>📺 <a href="{{cms:footer.contact_bilibili|https://space.bilibili.com/1121702307}}" target="_blank" rel="noopener">B站主页</a></p></div>
+    <nav class="site-footer__links" aria-label="页脚导航"><a href="/about/">关于我们</a><a href="/products/xinlv/">产品</a><a href="/download/">下载</a><a href="/log/">PHIX 日志</a></nav>
+  </div>
+  <div class="site-footer__copy">{{cms:footer.copyright|© 2026 phix}}</div>
+</footer>
+</body>
+</html>
