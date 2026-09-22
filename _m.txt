@@ -1,0 +1,16 @@
+Publish the 2026-09-22 builds on the download page
+
+四个包重出后同步下载页、校验清单与测试夹具：
+
+| 包 | 版本 | 字节数 | sha256（前 16 位） |
+|---|---|---|---|
+| `phllite-windows-setup.msi` | v1.2.0 → **v1.2.1** | 54,763,520 → 54,796,288 | `0455c3fc28be6f53` |
+| `phllite-macos.dmg` | v1.2.0 → **v1.2.1** | 38,062,639 → 38,775,769 | `638c107636278f76` |
+| `phl-windows-setup.exe` | v1.0.7 → **v1.0.8** | 171,885,875 → 171,908,717 | `ccd31670d023d4bd` |
+| `phl-macos.dmg` | v1.0.7 → **v1.0.8** | 212,783,388 → 212,837,541 | `f7c2fc299e0fa7b1` |
+
+更新日期统一为 2026-09-22；`NEWER_DATE` 随之调整（四个包都是重出的）。
+版本号 bump 的原因：这一轮修了 AI 会话的思考内容、工具轮线格式、流式输出与
+Markdown 渲染，包内容变了，沿用旧版本号会让人分不清新旧。
+
+`test_download_page.py` 19 项、`test_copy_c.py` 56 项、`test_app_web.py` 261 项全通过。
