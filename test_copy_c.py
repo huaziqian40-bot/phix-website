@@ -29,22 +29,26 @@ PASSED, FAILED = [], []
 
 # 事实清单 §3：8 个安装包 → (版本, 精确字节数, 平台/架构关键词)
 PACKAGES = {
-    "xinlv-windows-setup.exe":   ("v1.1.5", "77,864,960", ["Windows 10", "x64"]),
-    "xinlv-windows.zip":         ("v1.1.5", "76,191,163", ["Windows 10", "x64"]),
-    "xinlv-macos.dmg":           ("v1.1.5", "120,108,364", ["macOS 10.11", "x86_64"]),
-    "xinlv-android.apk":         ("v1.2.31", "5,596,332", ["Android 8.0", "原生库"]),
-    "phl-windows-setup.exe":     ("v1.0.8", "171,908,717", ["Windows 10/11", "x64"]),
-    "phl-macos.dmg":             ("v1.0.8", "212,837,541", ["macOS 13.0", "x86_64"]),
+    "xinlv-windows-setup.exe":   ("v1.1.5", "77,869,056", ["Windows 10", "x64"]),
+    "xinlv-windows.zip":         ("v1.1.5", "76,194,224", ["Windows 10", "x64"]),
+    "xinlv-macos.dmg":           ("v1.1.5", "120,107,656", ["macOS 10.11", "x86_64"]),
+    "xinlv-android.apk":         ("v1.2.31", "5,599,180", ["Android 8.0", "原生库"]),
+    "phl-windows-setup.exe":     ("v1.0.8", "171,910,200", ["Windows 10/11", "x64"]),
+    "phl-macos.dmg":             ("v1.0.8", "212,823,674", ["macOS 13.0", "x86_64"]),
     # PLL Windows 自 2026-09-21 起改用 WiX 构建的 MSI（只出安装版，不再提供便携版 exe）
-    "phllite-windows-setup.msi": ("v1.2.1", "54,796,288", ["Windows", "x64"]),
+    "phllite-windows-setup.msi": ("v1.2.1", "54,800,384", ["Windows", "x64"]),
     "phllite-macos.dmg":         ("v1.2.1", "38,775,769", ["macOS 11.0", "x86_64"]),
 }
-BUILD_DATE = "2026-09-12"
+BUILD_DATE = "2026-09-25"
 #: 2026-09-21 重出过的包 → 它们卡片上的日期比 BUILD_DATE 新
-NEWER_DATE = {"phl-windows-setup.exe": "2026-09-22",
-              "phl-macos.dmg": "2026-09-22",
-              "phllite-windows-setup.msi": "2026-09-22",
-              "phllite-macos.dmg": "2026-09-22"}
+NEWER_DATE = {"phl-windows-setup.exe": "2026-09-25",
+              "phl-macos.dmg": "2026-09-25",
+              "phllite-windows-setup.msi": "2026-09-25",
+              "phllite-macos.dmg": "2026-09-25",
+              "xinlv-windows-setup.exe": "2026-09-25",
+              "xinlv-windows.zip": "2026-09-25",
+              "xinlv-macos.dmg": "2026-09-25",
+              "xinlv-android.apk": "2026-09-25"}
 
 # 文档里「是对的、不要动」的配额与限流数字
 QUOTA_NUMBERS = ["8 MiB", "2000", "200 MiB", "50 个对象", "10 次", "8 次", "60 次", "120 次",
@@ -105,10 +109,9 @@ def main():
     print("\n[2] 每个安装包的完整信息（版本 / 日期 / 大小 / 平台与架构）")
     missing_ver = [f for f, (v, _, _) in PACKAGES.items() if v not in dl]
     check("7. 8 个安装包的版本号都在页面上", not missing_ver, f"缺失:{missing_ver}")
-    check("8. 每张卡片都有更新日期：4 张 %s + 4 张重出的 2026-09-21" % BUILD_DATE,
-          dl.count(BUILD_DATE) == 4 and dl.count("2026-09-22") == 4,
-          f"{BUILD_DATE}×{dl.count(BUILD_DATE)}, 2026-09-21×{dl.count('2026-09-21')}"
-          f"（应分别为 4 与 4；重出的包见 NEWER_DATE={sorted(NEWER_DATE)}）")
+    check("8. 每张卡片都有更新日期：8 张 %s" % BUILD_DATE,
+          dl.count(BUILD_DATE) == 8,
+          f"{BUILD_DATE}×{dl.count(BUILD_DATE)}（应全为 8；重出的包见 NEWER_DATE={sorted(NEWER_DATE)}）")
     missing_sz = [f for f, (_, sz, _) in PACKAGES.items() if sz not in dl]
     check("9. 8 个安装包的精确字节数都在页面上", not missing_sz, f"缺失:{missing_sz}")
     missing_mb = [f for f, (_, _, _) in PACKAGES.items()
