@@ -183,35 +183,54 @@ SERVICE_KEY = _load_service_key()
 _STATIC_ASSET_RE = re.compile(
     r'(["\'])(/static/[^"\'?]+?\.(?:css|js|png|jpe?g|gif|svg|webp|ico|woff2?|ttf))\1')
 
+# 安装包下载链接（/media/downloads/*.exe|msi|dmg|zip|apk|pkg）也做同样的版本化。
+# 为什么必须：官网走 Cloudflare，同一文件名在内容更新后仍会命中旧缓存 ——
+# 实测 2026-09-25 有三个包（apk / 两个 dmg）在 CDN 上还是旧版本，客户端下载后
+# SHA256 校验失败、更新被拒。给 URL 带上内容指纹即可穿透缓存。
+_DOWNLOAD_ASSET_RE = re.compile(
+    r'(["\'])(/media/downloads/[^"\'?]+?\.(?:exe|msi|dmg|zip|apk|pkg))\1')
+
+#: 版本串缓存：key=(相对路径, mtime_ns, size) → sha256 前 8 位。
+#: 安装包有 171 MB，不能每次渲染 HTML 都重算一遍。
+_STATIC_VERSION_CACHE: dict[tuple, str] = {}
+
 
 def _static_version(rel: str) -> str:
-    """返回某静态文件的 sha256 前 8 位；文件缺失返回空串。"""
+    """返回某静态文件的 sha256 前 8 位；文件缺失返回空串（按 mtime+size 缓存）。"""
     p = WEBSITE_DIR / rel
     try:
-        return hashlib.sha256(p.read_bytes()).hexdigest()[:8]
+        st = p.stat()
     except OSError:
         return ""
+    key = (rel, st.st_mtime_ns, st.st_size)
+    hit = _STATIC_VERSION_CACHE.get(key)
+    if hit is not None:
+        return hit
+    try:
+        ver = hashlib.sha256(p.read_bytes()).hexdigest()[:8]
+    except OSError:
+        ver = ""
+    _STATIC_VERSION_CACHE[key] = ver
+    return ver
 
 
 def _versionize_html(html: str) -> str:
-    """给 HTML 里所有 `/static/**` 的 css/js/图片引用加上 `?v=<sha256[:8]>`。
+    """给 HTML 里的 `/static/**` 与 `/media/downloads/**` 加上 `?v=<sha256[:8]>`。
 
     「已带的跳过」由正则保证：URL 里带 `?` 的不会被匹配 —— 所以**别手写 `?v=`**，
     手写就等于把这条 URL 钉死，之后改内容浏览器也不会重新取（immutable 一年）。
     """
-    cache: dict[str, str] = {}
+    for pattern in (_STATIC_ASSET_RE, _DOWNLOAD_ASSET_RE):
+        html = pattern.sub(_versionize_repl, html)
+    return html
 
-    def repl(m: re.Match) -> str:
-        quote, url = m.group(1), m.group(2)
-        rel = url.lstrip("/")
-        if rel not in cache:
-            cache[rel] = _static_version(rel)
-        ver = cache[rel]
-        if not ver:
-            return m.group(0)
-        return f"{quote}{url}?v={ver}{quote}"
 
-    return _STATIC_ASSET_RE.sub(repl, html)
+def _versionize_repl(m: re.Match) -> str:
+    quote, url = m.group(1), m.group(2)
+    ver = _static_version(url.lstrip("/"))
+    if not ver:
+        return m.group(0)
+    return f"{quote}{url}?v={ver}{quote}"
 
 
 # ---- 旧账号清单（心履迁移）----

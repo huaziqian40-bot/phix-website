@@ -100,6 +100,8 @@ def main():
     check("3. Pinghe Launcher 内 2 个可折叠子标题", len(re.findall(r'<details class="dl-sub"', dl)) == 2, "")
     check("4. 8 张卡片", len(re.findall(r'<article class="dl-card">', dl)) == 8, "")
     hrefs = re.findall(r'href="(/media/downloads/[^"]+)"', dl)
+    # 链接带 ?v=<sha8> 用于穿透 Cloudflare 缓存；比文件名时要去掉 query
+    hrefs = [h.split('?')[0] for h in hrefs]
     check("5. 8 个真实下载链接", len(hrefs) == 8
           and sorted(os.path.basename(h) for h in hrefs) == sorted(PACKAGES), f"{len(hrefs)}")
     check("6. 4 个 <details> 默认展开",

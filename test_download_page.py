@@ -91,6 +91,9 @@ def main():
     # ---- 2. 下载链接指向真实文件名 ----
     print("\n[2] 下载链接与文件")
     hrefs = re.findall(r'href="(/media/downloads/[^"]+)"', html_str)
+    # server.py 的 _versionize_html 会自动追加 ?v=<sha8>（穿透 Cloudflare 缓存），
+    # 比对文件名时先去掉 query
+    hrefs = [h.split('?')[0] for h in hrefs]
     names = sorted(set(os.path.basename(h) for h in hrefs))
     check("6. 8 个下载链接", len(hrefs) == 8, f"links={len(hrefs)}")
     check("7. 链接文件名与 8 个真实安装包一一对应",
