@@ -42,6 +42,10 @@ admin_audit.log
 # 安装包（约 760 MB）走 GitHub Releases 与站点自身分发，不进 git
 # media/logs/ 是用户上传的照片，属于用户数据
 media/
+
+# 自更新载荷（/updates/<产品>/ 的 exe、zip、latest.yml）同样是二进制产物：
+# 由 deploy.py 上传到生产机，不进 git —— 单文件 163.9 MB 超过 GitHub 的 100 MB 上限
+updates/
 __pycache__/
 *.pyc
 test_results.txt
