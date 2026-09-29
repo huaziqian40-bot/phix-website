@@ -66,6 +66,13 @@ HINT_USER_COOKIE = "phix_hint_user"
 #: 若把心履挪到 xinlv.phix.ing，把它设成 `.phix.ing`，两个子域就能共享登录态。
 COOKIE_DOMAIN = os.environ.get("PHIX_COOKIE_DOMAIN", "").strip()
 
+#: 长轮询（`/proxy/sync/watch/`）的读超时。
+#: phix 那边一条 watch 会**挂着不回**最多 25 秒（api/syncwatch.py 的
+#: `MAX_HOLD_SECONDS`），所以这一层的超时必须**明显大于**它 ——
+#: 否则会在服务端刚要返回时把连接掐掉，客户端收到的是一串"假失败"，
+#: 表现成同步看起来比轮询还慢。40 秒留了 15 秒余量。
+PROXY_WATCH_TIMEOUT = 40.0
+
 # ---- /app/ 平台数据抓取（网页端登录后由服务端代抓 edupage/managebac/邮箱）----
 APP_DATA_FETCH_TIMEOUT = 30.0     # 抓取层自带 20 秒平台预算，这里再兜一层
 #: 只认 /app/mail/<一段>/ —— uid 的合法性由 webapp_data 再校验（非法直接 404）
@@ -569,12 +576,19 @@ def _decrypt_payload(dek: bytes, user_id: int, object_name: str, envelope: str) 
 
 def _phix_request(method: str, path: str, body=None, access_token: str = "",
                   retry_on_expired: bool = True, refresh_token: str = "",
-                  service_key: bool = False) -> tuple[int, dict, str | None]:
+                  service_key: bool = False, query: str = "",
+                  timeout: float = 30) -> tuple[int, dict, str | None]:
     """向 phix 发请求（走信封）。返回 (status, body_dict, new_access_if_refreshed)。
 
-    path 不含 /api/v1 前缀。
+    path 不含 /api/v1 前缀。**查询串要单独放 query**，不能拼进 path：
+    信封的 AAD 是 ``方法|路径``（不含查询串），查询串是明文里的 ``q`` 字段，
+    phix 收到后会把它塞回 ``request.META["QUERY_STRING"]``。拼进 path 的话
+    两边算出来的 AAD 就不一样，响应直接解不开（见 api/e2e.py 的说明）。
+
     ``service_key=True`` 额外带上 ``X-Phix-Service-Key``（服务端到服务端的端点要它，
     例如 /auth/sso/redeem —— 光有码还换不走令牌）。
+    ``timeout`` 是读超时。长轮询（`sync/watch`）服务端会**挂着不回**最多 25 秒，
+    所以那条路径必须显式放大，默认的 30 秒只剩 5 秒余量，太紧。
     """
     api_path = f"/api/v1/{path.lstrip('/')}"
     pk = _get_server_pk()
@@ -587,12 +601,13 @@ def _phix_request(method: str, path: str, body=None, access_token: str = "",
     if service_key and SERVICE_KEY:
         headers["X-Phix-Service-Key"] = SERVICE_KEY
 
-    envelope, sk = e2e.make_envelope(pk, method, api_path, body)
+    envelope, sk = e2e.make_envelope(pk, method, api_path, body, query=query)
     data = json.dumps(envelope).encode("utf-8")
 
+    url = f"{PHIX_SERVER}{api_path}" + (f"?{query}" if query else "")
     try:
-        req = urllib.request.Request(f"{PHIX_SERVER}{api_path}", data=data, method=method, headers=headers)
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        req = urllib.request.Request(url, data=data, method=method, headers=headers)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             raw = resp.read()
             status = resp.status
     except urllib.error.HTTPError as exc:
@@ -625,7 +640,8 @@ def _phix_request(method: str, path: str, body=None, access_token: str = "",
         new_access = _refresh_access(refresh_token)
         if new_access:
             return _phix_request(method, path, body, access_token=new_access,
-                                 retry_on_expired=False, refresh_token="")
+                                 retry_on_expired=False, refresh_token="",
+                                 query=query, timeout=timeout)
     return status, resp_body, None
 
 
@@ -2007,7 +2023,7 @@ class SiteHandler(BaseHTTPRequestHandler):
             return self._handle_app_mail(mail_match.group(1))
         if path.startswith("/proxy/"):
             sub = path[len("/proxy/"):]
-            return self._handle_proxy(sub, method="GET")
+            return self._handle_proxy(sub, method="GET", query=parsed.query)
         # ---- admin 路由 ----
         if path == "/admin" or path.startswith("/admin/"):
             return self._handle_admin_get(path)
@@ -2051,7 +2067,7 @@ class SiteHandler(BaseHTTPRequestHandler):
             return self._handle_app_mail_send()
         if path.startswith("/proxy/"):
             sub = path[len("/proxy/"):]
-            return self._handle_proxy(sub, method="POST")
+            return self._handle_proxy(sub, method="POST", query=parsed.query)
         # ---- admin API 路由 ----
         if path.startswith("/admin/api/"):
             return self._handle_admin_api_post(path)
@@ -3010,7 +3026,7 @@ class SiteHandler(BaseHTTPRequestHandler):
 
     # ---- /proxy/<path>/ ----
 
-    def _handle_proxy(self, sub_path: str, method: str = "POST"):
+    def _handle_proxy(self, sub_path: str, method: str = "POST", query: str = ""):
         sess, extra_h = self._maybe_refresh_session()
         if not sess:
             if extra_h:
@@ -3042,8 +3058,11 @@ class SiteHandler(BaseHTTPRequestHandler):
                         "code": "dek_locked",
                         "message": "这是免密登录的会话，端到端加密还没解锁："
                                    "请先在个人中心输入一次密码（POST /auth/unlock/）再修改数据。"}})
-        status, resp, new_access = _phix_request(phix_method, sub_path, body=body,
-                                                  access_token=access, refresh_token=refresh)
+        # 长轮询要挂 25 秒，读超时必须放大（见 PROXY_WATCH_TIMEOUT）；其余照旧 30 秒。
+        status, resp, new_access = _phix_request(
+            phix_method, sub_path, body=body,
+            access_token=access, refresh_token=refresh, query=query,
+            timeout=PROXY_WATCH_TIMEOUT if sub_path.startswith("sync/watch") else 30)
         # 解密 GET 响应的 payload（如果有的话）
         if method == "GET" and sub_path.startswith("sync/objects/") and status == 200:
             if isinstance(resp, dict) and resp.get("ok") and isinstance(resp.get("payload"), str):

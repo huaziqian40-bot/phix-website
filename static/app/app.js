@@ -331,6 +331,164 @@ function putObject(name, ref, change) {
   return run();
 }
 
+/* -------------------------------------------- 长轮询：云端一变就刷（2026-09-28） */
+
+/**
+ * 挂着等云端变化（`/proxy/sync/watch/`），一变就把同步对象重读一遍。
+ *
+ * 用户 2026-09-28：同步延迟要秒级。在这之前网页端**只有手动点「刷新」**才会
+ * 重新读同步对象 —— 别的设备（桌面端、手机端）改了日程，这个标签页
+ * 不刷新就永远看不到。
+ *
+ * 服务端会把请求挂住最多 25 秒，一有变化立刻返回，所以延迟是一个 RTT，
+ * 而不是一个轮询间隔。三种回包要分清（**这是这套机制最容易写错的地方**）：
+ *
+ *   changed=true                    → 云端真的变了，重读；
+ *   changed=false，没 retry_after   → 正常挂满超时，**立刻**再挂上（长轮询接力，
+ *                                     这正是它一直挂着的方式，不是热循环）；
+ *   changed=false，有 retry_after   → 服务端同时挂起的名额满了。挂起实打实占着
+ *                                     一个 waitress 线程（见 api/syncwatch.py 的
+ *                                     `WATCH_SLOTS`），所以必须等一下再挂，
+ *                                     否则就是拿热循环去打服务器。
+ *
+ * 后两种在 HTTP 层长得一模一样，只能靠 retry_after 区分 —— 所以那个字段不能省。
+ */
+
+var WATCH_PATH = '/proxy/sync/watch/';
+//: 必须明显大于服务端的 25 秒挂起（和 website 那层的 40 秒转发超时），
+//: 否则会在服务端刚要返回时被浏览器掐断，表现成一串"假失败"。
+var WATCH_TIMEOUT_MS = 45000;
+//: 失败、被服务端打回时的退避。
+var WATCH_RETRY_MS = 3000;
+
+var syncWatch = { cursor: '', running: false, hits: 0, lastHitAt: 0,
+                  errs: 0, lastErr: '', reloadNames: [] };
+
+/** 受长轮询照看的同步对象：怎么读本地那份缓存、怎么让它下次真的去云端重读。
+ *  故意**不含** `settings.ai` —— 那是本机设置，别的设备改了不需要当场刷。 */
+function watchObjects() {
+  return [
+    { name: OBJ.schedule, ref: function () { return st.schedule; },
+      reset: function () { st.schedule = null; schedulePromise = null; },
+      load: loadScheduleOnce },
+    { name: OBJ.lessons, ref: function () { return st.lessons; },
+      reset: function () { st.lessons = null; lessonsPromise = null; },
+      load: loadLessonsOnce },
+    { name: OBJ.accounts, ref: function () { return st.accounts; },
+      reset: function () { st.accounts = null; accountsPromise = null; },
+      load: loadAccountsOnce },
+    { name: SCHOOL_OBJ, ref: function () { return st.sync; },
+      reset: function () { st.sync = null; syncPromise = null; },
+      load: ensureSync }
+  ];
+}
+
+function watchSleep(ms) {
+  return new Promise(function (resolve) { setTimeout(resolve, ms); });
+}
+
+/**
+ * 重读变了的那几个对象。`manifest` 为空/缺失 = 不知道变了什么，全都重读。
+ *
+ * **自己刚写过的对象不算"变了"**：服务端回包里带着清单（name/revision），
+ * 本地 revision 一致就跳过。否则用户每改一笔，自己的标签页就白重读一次，
+ * 编辑到一半的表单还会被刷掉。
+ */
+function watchReload(manifest) {
+  var remoteRev = {}, known = {};
+  var hasManifest = !!(manifest && manifest.length);
+  if (hasManifest) {
+    manifest.forEach(function (o) {
+      if (o && o.name) { remoteRev[o.name] = o.revision; known[o.name] = true; }
+    });
+  }
+  var jobs = [], names = [];
+  watchObjects().forEach(function (t) {
+    var local = t.ref();
+    var dirty;
+    if (!hasManifest) {
+      dirty = true;                                   // 不知道变了啥：全读一遍
+    } else if (!known[t.name]) {
+      dirty = false;                                  // 云端压根没这个对象
+    } else {
+      dirty = !local || local.revision !== remoteRev[t.name];
+    }
+    if (!dirty) return;
+    names.push(t.name);
+    t.reset();
+    // 单个对象读失败不能拖垮其余的：吞掉，下一轮长轮询还有机会。
+    jobs.push(t.load()['catch'](function () {}));
+  });
+  if (!jobs.length) return Promise.resolve();
+  syncWatch.reloadNames = names;
+  return Promise.all(jobs).then(function () { applyLive(); });
+}
+
+/** 挂一次。**永不 reject** —— 后台循环不能因为一次异常就断掉。 */
+function watchOnce() {
+  var url = WATCH_PATH;
+  if (syncWatch.cursor) url += '?cursor=' + encodeURIComponent(syncWatch.cursor);
+  return req('GET', url, undefined,
+             { timeoutMs: WATCH_TIMEOUT_MS, allow401: true }).then(function (res) {
+    if (res.status === 401) {
+      // 会话失效：把引导登录交给前台请求去做（比如用户点了一下），
+      // 后台长轮询不该自己把人踹到登录页。停掉循环就是了。
+      syncWatch.running = false;
+      return undefined;
+    }
+    if (res.status !== 200 || !res.body || res.body.ok === false) {
+      throw new Error(errText(res));
+    }
+    var body = res.body;
+    if (body.cursor) syncWatch.cursor = String(body.cursor);
+    syncWatch.errs = 0;
+    syncWatch.lastErr = '';
+    if (body.changed) {
+      syncWatch.hits += 1;
+      syncWatch.lastHitAt = Date.now();
+      return watchReload(body.objects || null);
+    }
+    var retryAfter = Number(body.retry_after);
+    if (isFinite(retryAfter) && retryAfter > 0) {
+      return watchSleep(Math.min(retryAfter * 1000, WATCH_RETRY_MS));
+    }
+    return undefined;                                 // 正常超时：立刻再挂
+  });
+}
+
+function watchLoop() {
+  if (!syncWatch.running) return;
+  watchOnce()['catch'](function (err) {
+    if (err && err.unauthorized) { syncWatch.running = false; return undefined; }
+    syncWatch.errs += 1;
+    syncWatch.lastErr = (err && err.message) || String(err);
+    return watchSleep(WATCH_RETRY_MS);
+  }).then(function () {
+    if (!syncWatch.running) return;
+    // 用 setTimeout 断开 promise 链：否则标签页开一整天，链子会一直变长。
+    setTimeout(watchLoop, 0);
+  });
+}
+
+function startSyncWatch() {
+  // 页面在后台就先不挂：浏览器会把后台标签页的请求节流，挂着只是白占服务端一个
+  // 名额（名额很贵，见 api/syncwatch.py 的 WATCH_SLOTS）。切回前台时再见。
+  if (syncWatch.running || document.hidden) return;
+  syncWatch.running = true;
+  watchLoop();
+}
+
+function stopSyncWatch() {
+  syncWatch.running = false;
+}
+
+/* 切回前台：不用特意补一次全量 —— 光标是拿库里的状态现算的，离开期间真有变化的话，
+   下一次长轮询会**立刻**返回 changed=true（这正是它比定时轮询好的地方）。 */
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) stopSyncWatch();
+  else startSyncWatch();
+});
+
 /* --------------------------------------------------- 通用只读渲染（兜底展示） */
 
 var MAX_ROWS = 200;      // 单表最多 200 行
@@ -7671,6 +7829,8 @@ function boot() {
     });
 
     showView('schedule');
+    // 开机完成（确认有会话）才开始长轮询：没登录时挂上去只会拿一串 401。
+    startSyncWatch();
   })['catch'](function (err) {
     if (err && err.unauthorized) return;
     // 开机画面里不写字：连不上服务器就照旧给登录页，让登录卡去说清楚。

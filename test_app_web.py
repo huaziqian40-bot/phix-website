@@ -1272,6 +1272,50 @@ def main():
     check("234. 删掉说明不等于藏起来：附件限额改挂在摘要行",
           "' / 上限 ' + cap" in js and "'未选择附件（最多 '" in js, "")
 
+    # ---------- [20] 长轮询：别的设备一改，这边一个 RTT 就知道 ----------
+    # 用户 2026-09-28：「同步延迟要秒级」。在这之前网页端**只有手动点刷新**才会重读
+    # 同步对象，所以 PHL / PHL Lite / 心履 改了日程，开着的标签页永远看不到。
+    print("\n[20] 长轮询：云端一变就刷（不再只有手动刷新才看得到）")
+    ws = js.split("长轮询：云端一变就刷")[1].split("通用只读渲染")[0]
+    _wt = re.search(r"var WATCH_TIMEOUT_MS = (\d+);", ws)
+    check("235. 网页端挂着长轮询等云端变化，而不是等用户点刷新",
+          "var WATCH_PATH = '/proxy/sync/watch/';" in ws
+          and "function watchOnce()" in ws and "function watchLoop()" in ws
+          and "function startSyncWatch()" in ws
+          and "setTimeout(watchLoop, 0);" in ws, "")
+    check("236. 长轮询超时明显大于服务端 25 秒挂起（小了会在服务端刚要返回时被掐断）",
+          bool(_wt) and int(_wt.group(1)) > 25000
+          and "{ timeoutMs: WATCH_TIMEOUT_MS, allow401: true }" in ws,
+          f"WATCH_TIMEOUT_MS={_wt.group(1) if _wt else '缺失'}")
+    # 这一条是整套机制最容易写错的地方：两种回包在 HTTP 层长得一模一样。
+    _once = ws.split("function watchOnce()")[1].split("function watchLoop()")[0]
+    check("237. 「正常超时」立刻再挂、「名额满了被打回」先等一下（只能靠 retry_after 区分）",
+          "if (body.changed) {" in _once
+          and "var retryAfter = Number(body.retry_after);" in _once
+          and "return watchSleep(Math.min(retryAfter * 1000, WATCH_RETRY_MS));" in _once
+          # 正常超时那条路必须**什么都不睡**直接返回，下一轮立刻接力 —— 秒级延迟全靠它
+          and re.search(r"return undefined;\s*// 正常超时", _once) is not None, "")
+    check("238. 自己刚写过的对象不算「云端变了」（按 revision 比对，免得白重读还刷掉编辑中的表单）",
+          "function watchReload(manifest)" in ws
+          and "dirty = !local || local.revision !== remoteRev[t.name];" in ws
+          and "if (!hasManifest) {" in ws
+          and "if (!jobs.length) return Promise.resolve();" in ws, "")
+    check("239. 确认有会话之后才起长轮询；切到后台就停、切回来再起（后台挂着只是白占名额）",
+          # 必须挂在**确认有会话**的那条路径上：没登录时挂上去只会拿一串 401
+          re.search(r"showView\('schedule'\);\s*\n\s*//[^\n]*\n\s*startSyncWatch\(\);", js) is not None
+          and "if (syncWatch.running || document.hidden) return;" in ws
+          and "if (document.hidden) stopSyncWatch();" in ws
+          and "else startSyncWatch();" in ws
+          and "if (res.status === 401) {" in ws, "")
+    check("240. 服务端把查询串放进信封的 q（**不能拼进 path** —— 拼了两边 AAD 对不上，响应直接解不开）",
+          'query: str = "",' in srv
+          and "e2e.make_envelope(pk, method, api_path, body, query=query)" in srv
+          and "query=query," in srv
+          and 'self._handle_proxy(sub, method="GET", query=parsed.query)' in srv, "")
+    check("241. `/proxy/sync/watch/` 用更长的转发超时（默认 30 秒对 25 秒挂起只剩 5 秒余量，太紧）",
+          "PROXY_WATCH_TIMEOUT = 40.0" in srv
+          and 'timeout=PROXY_WATCH_TIMEOUT if sub_path.startswith("sync/watch") else 30' in srv, "")
+
     print("\n" + "=" * 72)
     print(f"通过 {len(PASSED)} 项，失败 {len(FAILED)} 项")
     for f in FAILED:
