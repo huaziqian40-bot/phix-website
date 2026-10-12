@@ -61,7 +61,8 @@ EXCLUDE_FILES = {".site_secret", ".phix_pubkey", ".service_key", "content.json",
                  "admin_audit.log", ".legacy_users.json", "logs.json", "logs.json.tmp",
                  Path(__file__).name}
 EXCLUDE_EXTS = {".pyc"}
-HASH_LIMIT = 4 * 1024 * 1024      # 小于这个大小才做内容比对
+#: （原来的 `HASH_LIMIT = 4 MiB` 已删：它只用来决定"多大的文件可以不比内容"，
+#:  而那正是 2026-10-12 发错包的原因 —— 见下面上传循环里的注释。现在一律比内容哈希。）
 
 MB = 1024.0 * 1024.0
 
@@ -239,12 +240,11 @@ def do_upload(r: Remote, files: list[tuple[str, Path, int]]) -> dict:
         r.mkdirs(posixpath.dirname(rel))
         rsize = r.size(rpath)
         if rsize == size:
-            if size > HASH_LIMIT:
-                print(f"[{i}/{len(files)}] 跳过（远端大小一致 {human(size)}）  {rel}", flush=True)
-                sk_n += 1
-                sk_b += size
-                skipped_big.append(rel)
-                continue
+            # **只按大小跳过是不成立的**：2026-10-12 发 心履 1.1.10 时踩到 ——
+            # `xinlv-windows-setup.exe` 新旧两版**大小一模一样**（都是 77,877,248 字节），
+            # 于是旧包被跳过、官网继续发旧版安装包，而下载页上写的是新版本号。
+            # 大小相同**不代表内容相同**，所以一律比内容哈希（大文件也只是慢一点，
+            # 走局域网读一遍远比发错包便宜）。原来这里对大文件直接 continue。
             if r.sha256(rpath, size) == sha256_file(path):
                 print(f"[{i}/{len(files)}] 跳过（内容一致）  {rel}", flush=True)
                 sk_n += 1
