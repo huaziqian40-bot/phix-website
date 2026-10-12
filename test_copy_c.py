@@ -29,27 +29,27 @@ PASSED, FAILED = [], []
 
 # 事实清单 §3：8 个安装包 → (版本, 精确字节数, 平台/架构关键词)
 PACKAGES = {
-    "xinlv-windows-setup.exe":   ("v1.1.9", "77,877,248", ["Windows 10", "x64"]),
-    "xinlv-windows.zip":         ("v1.1.9", "78,480,969", ["Windows 10", "x64"]),
-    "xinlv-macos.dmg":           ("v1.1.9", "121,344,896", ["macOS 10.11", "x86_64"]),
-    "xinlv-android.apk":         ("v1.2.34", "5,604,532", ["Android 8.0", "原生库"]),
-    "phl-windows-setup.exe":     ("v1.0.12", "172,236,616", ["Windows 10/11", "x64"]),
-    "phl-macos.dmg":             ("v1.0.12", "213,341,838", ["macOS 13.0", "x86_64"]),
+    "xinlv-windows-setup.exe":   ("v1.1.10", "77,877,248", ["Windows 10", "x64"]),
+    "xinlv-windows.zip":         ("v1.1.10", "78,484,034", ["Windows 10", "x64"]),
+    "xinlv-macos.dmg":           ("v1.1.10", "121,347,178", ["macOS 10.11", "x86_64"]),
+    "xinlv-android.apk":         ("v1.2.35", "5,607,932", ["Android 8.0", "原生库"]),
+    "phl-windows-setup.exe":     ("v1.0.13", "172,238,828", ["Windows 10/11", "x64"]),
+    "phl-macos.dmg":             ("v1.0.13", "213,336,519", ["macOS 13.0", "x86_64"]),
     # PLL Windows 自 2026-09-21 起改用 WiX 构建的 MSI（只出安装版，不再提供便携版 exe）
-    "phllite-windows-setup.msi": ("v1.2.5", "54,824,960", ["Windows", "x64"]),
-    "phllite-macos.dmg":         ("v1.2.5", "38,033,369", ["macOS 11.0", "x86_64"]),
+    "phllite-windows-setup.msi": ("v1.2.6", "54,829,056", ["Windows", "x64"]),
+    "phllite-macos.dmg":         ("v1.2.6", "38,038,425", ["macOS 11.0", "x86_64"]),
 }
-BUILD_DATE = "2026-10-02"
+BUILD_DATE = "2026-10-12"
 #: 2026-09-21 重出过的包 → 它们卡片上的日期比 BUILD_DATE 新
 NEWER_DATE = {
-              "phl-macos.dmg": "2026-10-02",
-              "phl-windows-setup.exe": "2026-10-02",
-              "phllite-macos.dmg": "2026-10-02",
-              "phllite-windows-setup.msi": "2026-10-02",
-              "xinlv-android.apk": "2026-10-02",
-              "xinlv-macos.dmg": "2026-10-02",
-              "xinlv-windows-setup.exe": "2026-10-02",
-              "xinlv-windows.zip": "2026-10-02"}
+              "phl-macos.dmg": "2026-10-12",
+              "phl-windows-setup.exe": "2026-10-12",
+              "phllite-macos.dmg": "2026-10-12",
+              "phllite-windows-setup.msi": "2026-10-12",
+              "xinlv-android.apk": "2026-10-12",
+              "xinlv-macos.dmg": "2026-10-12",
+              "xinlv-windows-setup.exe": "2026-10-12",
+              "xinlv-windows.zip": "2026-10-12"}
 
 # 文档里「是对的、不要动」的配额与限流数字
 QUOTA_NUMBERS = ["8 MiB", "2000", "200 MiB", "50 个对象", "10 次", "8 次", "60 次", "120 次",

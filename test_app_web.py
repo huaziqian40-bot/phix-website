@@ -1316,6 +1316,50 @@ def main():
           "PROXY_WATCH_TIMEOUT = 40.0" in srv
           and 'timeout=PROXY_WATCH_TIMEOUT if sub_path.startswith("sync/watch") else 30' in srv, "")
 
+    # ---------- [21] 设置页「关于软件」卡（版本 / 更新口径 / 作者 / 官网） ----------
+    # 用户要求加一个「关于软件」：当前版本 + 更新说明 + 作者联系方式 + 官网入口。
+    # 注意两点与旧断言的关系：
+    #   - 26 断言「页脚联系方式不跑进 /app/」依然成立——联系方式只写在 app.js 的
+    #     renderAbout 里，HTML 静态外壳不含 icloud/微信/bilibili 这些词（见 26 / 28）。
+    #   - 网页端没有「检查更新」按钮，只有如实的一句 + 真「重新加载」（pull 最新脚本）。
+    print("\n[21] 设置页「关于软件」卡")
+    check("242. 设置页有「关于软件」卡（宿主 id + 标题），不放进折叠诊断区",
+          'id="set-about-card"' in html and 'id="set-about"' in html
+          and "关于软件" in vis
+          and "<details class=\"card diag\" id=\"set-diag\">" in html, "")
+    check("243. 关于卡由 renderAbout 构建（renderSettings 里会渲染），版本号读当前 <script> 标签",
+          "function renderAbout" in js and "renderAbout();" in js
+          and "function appLoadedVersion(" in js
+          and "querySelector('script[src*=\"app.js\"]')" in js
+          and r"/\bv=([0-9a-z]+)/i.exec(mine)" in js, "")
+    check("244. **没有**假的「检查更新」按钮：如实说「网页端始终是最新版本」+ 真「重新加载」",
+          "网页端始终是最新版本" in js and "'重新加载'" in js
+          and "location.reload();" in js
+          and "检查更新" not in strip_comments(js), "")
+    check("245. 作者/联系方式与官网页脚（index.html 的 site-footer）同款："
+          "作者行 + 邮箱 + 电话 + 微信 + B站 + 版权",
+          "上海民办平和学校 · 维修社 · 用代码装点校园生活" in js
+          and "mailto:norine.liu@icloud.com" in js
+          and "mailto:huaziqian40@gmail.com" in js
+          and "18901712280" in js and "13675821816" in js
+          and "微信：Norine2010" in js and "int_32_2147483647" in js
+          and "https://space.bilibili.com/1121702307" in js
+          and "© 2026 phix" in js, "")
+    check("246. 邮箱是 mailto 链接，B站 / 官网是真外链（新窗口 + rel=noopener）",
+          "mailto:norine.liu@icloud.com" in js
+          and "mailto:huaziqian40@gmail.com" in js
+          and "a.target = '_blank'; a.rel = 'noopener';" in js
+          and "https://space.bilibili.com/1121702307" in js
+          and "https://phix.ing/download/" in js, "")
+    # 技术细节只收在折叠诊断区；「关于软件」这块普通用户直接看的信息里不许出现
+    # 接口路径 / token / 同步对象名 —— 只拿 renderAbout 的函数体来判，别误伤别处。
+    _ab = js.split("function renderAbout")[1].split("function aboutContactRow")[0]
+    check("247. 关于卡只写给用户看，不泄露任何服务端 / 技术细节",
+          "/app/data" not in _ab and "proxy/sync" not in _ab
+          and "token" not in _ab.lower()
+          and "MAIL_PATH" not in _ab and "DATA_PATH" not in _ab
+          and "schedule" not in _ab and "settings.lessons" not in _ab, "")
+
     print("\n" + "=" * 72)
     print(f"通过 {len(PASSED)} 项，失败 {len(FAILED)} 项")
     for f in FAILED:

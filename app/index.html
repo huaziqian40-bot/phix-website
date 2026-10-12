@@ -479,6 +479,14 @@
         </div>
       </div>
 
+      <!-- 「关于软件」：版本 / 作者 / 联系方式 / 官网。内容全部由 loadSettings→renderAbout 用 JS
+           构建（版本号要读当前脚本标签，联系方式是网站页脚同款）——这里只留宿主与标题，
+           不含任何具体文案，免得测试里「页脚联系方式不跑进 /app/」那类断言被静态文本误伤。 -->
+      <div class="card" id="set-about-card">
+        <div class="card-title">关于软件</div>
+        <div id="set-about" style="margin-top:10px"><div class="empty">加载中…</div></div>
+      </div>
+
       <!-- 技术细节（数据来源 / 同步状态 / 关于 / 账号标识）默认收在这个折叠区里，
            普通用户不点开就看不到；需要排查时展开即可拿到全部信息。 -->
       <details class="card diag" id="set-diag">

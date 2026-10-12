@@ -6307,7 +6307,121 @@ function renderSettings() {
   }
 
   renderDataSourceCard();
+  renderAbout();
   updateLiveStamp('set');
+}
+
+/* ============ 设置页「关于软件」卡（2026-10，用户要求）============
+ * 展示三件事：当前版本、更新口径、作者/联系方式与官网入口。
+ * 几点约束，都得遵守：
+ *   - **网页端没有「安装更新」这一步**：浏览器加载到的永远是最新版，所以**不假装
+ *     有个能点的「检查更新」按钮**（点了没有任何真实动作）。改成如实说明
+ *     「网页端始终是最新版本」+ 一个真有用的「重新加载」——直接 reload 一次，
+ *     就能拿到服务端正在发的最新脚本（静态资源带内容哈希 ?v=，reload 后必然是最新）。
+ *   - 版本号直接用**自己这个 <script> 标签**的 `?v=`（内容哈希 sha256 前 8 位），
+ *     跟 guardStaleShell 同一个口径，显示的就是用户手上正在跑的这份，不是别的。
+ *   - 作者/联系方式与官网下载页一致（照 index.html 的 site-footer，见注释里的原文）。
+ *   - 只写普通用户关心的：版本、更新、作者、邮箱、电话、微信、B站、官网。
+ *     不写接口地址 / token / 同步对象名 / 端到端加密细节（用户明确反对给用户看这些）。
+ */
+function renderAbout() {
+  var box = $('set-about');
+  if (!box) return;
+  clear(box);
+
+  // 当前版本：内容哈希，来自加载本页的 <script src=...app.js?v=<hash>>。
+  var ver = appLoadedVersion();
+
+  // —— 版本 + 更新口径（kv 表，跟设置页其它卡片同款排版）——
+  var kv = el('div', 'kv');
+  var rv = el('div', 'kv__row');
+  rv.appendChild(el('div', 'kv__k', '当前版本'));
+  rv.appendChild(el('div', 'kv__v', ver ? ('v' + ver) : '—'));
+  kv.appendChild(rv);
+
+  var ru = el('div', 'kv__row');
+  ru.appendChild(el('div', 'kv__k', '更新'));
+  var upv = el('div', 'kv__v');
+  // 如实：没有「检查更新」按钮，网页端打开就是服务器正在发的那份；
+  // reload 是唯一的「拉新」动作（回归：不做假按钮、不漏那句「检查更新」文案）。
+  upv.appendChild(el('span', 'web-always-latest', '网页端始终是最新版本（' + (ver ? 'v' + ver : '当前这份') + '）'));
+  var reloadBtn = el('button', 'ghost', '重新加载');
+  reloadBtn.type = 'button';
+  reloadBtn.addEventListener('click', function () {
+    // 复用既有的陈旧标签页自愈路径：直接整页刷新，新页面里脚本版本自动对齐到最新。
+    // （guardStaleShell 每 60 秒也自己会查，这里只是给用户一个「现在就要」的手动入口。）
+    location.reload();
+  });
+  reloadBtn.setAttribute('aria-label', '重新加载网页端，拉取最新版本');
+  upv.appendChild(reloadBtn);
+  ru.appendChild(upv);
+  kv.appendChild(ru);
+  box.appendChild(kv);
+  box.appendChild(el('p', 'footnote',
+    '网页端没有版本安装这一步：浏览器加载到的永远是服务器当前提供的版本。' +
+    '若标签页开得太久，页面也会自动比对版本并刷新到最新，一般不用手动操作。'));
+
+  // —— 作者 / 联系方式（照 index.html 的 <footer class="site-footer"> 同款信息）——
+  var who = el('p', 'notice__body', '上海民办平和学校 · 维修社 · 用代码装点校园生活');
+  box.appendChild(who);
+
+  var c = el('div', 'about-contact');
+
+  // 邮箱：做成 mailto 链接（两个）。
+  c.appendChild(aboutContactRow('📧',
+    [aboutLink('mailto:norine.liu@icloud.com', 'norine.liu@icloud.com'),
+     aboutLink('mailto:huaziqian40@gmail.com', 'huaziqian40@gmail.com')],
+    ' / '));
+  c.appendChild(aboutContactRow('📞',
+    [document.createTextNode('18901712280'), document.createTextNode('13675821816')],
+    ' / '));
+  c.appendChild(aboutContactRow('💬',
+    [document.createTextNode('微信：Norine2010'), document.createTextNode('int_32_2147483647')],
+    ' / '));
+
+  // B站：真外链（新窗口 + noopener）。
+  var b = el('div', 'about-contact__row');
+  b.appendChild(el('span', 'about-contact__key', '📺'));
+  b.appendChild(aboutLink('https://space.bilibili.com/1121702307', 'B站主页', true));
+  c.appendChild(b);
+
+  box.appendChild(c);
+
+  // —— 访问官网（下载页）——
+  var foot = el('div', 'row-tools');
+  foot.style.marginTop = '12px';
+  foot.appendChild(aboutLink('https://phix.ing/download/', '访问官网', true));
+  box.appendChild(foot);
+
+  // 版权与官网页脚一致。
+  box.appendChild(el('p', 'footnote', '© 2026 phix'));
+}
+
+/** 构建「📧 …」这种带键前缀的链接行：把一组节点用分隔串连起来。 */
+function aboutContactRow(keyText, nodes, sep) {
+  var row = el('div', 'about-contact__row');
+  row.appendChild(el('span', 'about-contact__key', keyText));
+  for (var i = 0; i < nodes.length; i++) {
+    if (i) row.appendChild(document.createTextNode(sep));
+    row.appendChild(nodes[i]);
+  }
+  return row;
+}
+
+/** 构建一个 <a> 链接；external=true 时新窗口打开并带 rel=noopener。 */
+function aboutLink(href, text, external) {
+  var a = document.createElement('a');
+  a.href = href;
+  a.textContent = text;
+  if (external) { a.target = '_blank'; a.rel = 'noopener'; }
+  return a;
+}
+
+/** 当前这份 app.js 的版本串：读加载用的 <script src=…app.js?v=<hash>>（与 guardStaleShell 同口径）。 */
+function appLoadedVersion() {
+  var tag = document.querySelector('script[src*="app.js"]');
+  var mine = tag ? String(tag.getAttribute('src') || '') : '';
+  return (/\bv=([0-9a-z]+)/i.exec(mine) || [])[1] || '';
 }
 
 /** 设置页「数据来源」卡：现在是谁在抓、为什么、怎么改成另一条路（一键启动说明）。 */

@@ -981,6 +981,18 @@ a.att-dl:focus-visible{outline:3px solid rgba(42,114,90,.4);outline-offset:2px}
 #set-ai-card select{min-width:0}
 #set-ai-card .row-tools{flex-wrap:wrap}
 
+/* ---------- 设置页：关于软件卡 ---------- */
+
+/* 版本行里的「网页端始终是最新版本」与「重新加载」同排，按钮不用大，ghost 即可 */
+#set-about .kv__v{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+#set-about .web-always-latest{font-size:13.5px}
+#set-about .kv__v button{min-height:0;line-height:1}
+
+/* 作者 / 联系方式块：图标键与内容各占一列，联系信息可以安全断行换行 */
+.about-contact{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.about-contact__row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.about-contact__key{min-width:24px;color:var(--ink-3)}
+
 /* ---------- 撰写邮件模态 ---------- */
 
 .compose-overlay{
