@@ -33,11 +33,11 @@ PACKAGES = {
     "xinlv-windows.zip":         ("v1.1.10", "78,484,034", ["Windows 10", "x64"]),
     "xinlv-macos.dmg":           ("v1.1.10", "121,347,178", ["macOS 10.11", "x86_64"]),
     "xinlv-android.apk":         ("v1.2.35", "5,607,932", ["Android 8.0", "原生库"]),
-    "phl-windows-setup.exe":     ("v1.0.14", "172,239,103", ["Windows 10/11", "x64"]),
-    "phl-macos.dmg":             ("v1.0.14", "213,337,365", ["macOS 13.0", "x86_64"]),
+    "phl-windows-setup.exe":     ("v1.0.15", "172,240,271", ["Windows 10/11", "x64"]),
+    "phl-macos.dmg":             ("v1.0.15", "213,344,113", ["macOS 13.0", "x86_64"]),
     # PLL Windows 自 2026-09-21 起改用 WiX 构建的 MSI（只出安装版，不再提供便携版 exe）
-    "phllite-windows-setup.msi": ("v1.2.6", "54,829,056", ["Windows", "x64"]),
-    "phllite-macos.dmg":         ("v1.2.6", "38,038,425", ["macOS 11.0", "x86_64"]),
+    "phllite-windows-setup.msi": ("v1.2.7", "54,833,152", ["Windows", "x64"]),
+    "phllite-macos.dmg":         ("v1.2.7", "38,037,193", ["macOS 11.0", "x86_64"]),
 }
 BUILD_DATE = "2026-10-17"
 #: 2026-09-21 重出过的包 → 它们卡片上的日期比 BUILD_DATE 新
