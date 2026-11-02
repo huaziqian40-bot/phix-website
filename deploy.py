@@ -8,9 +8,10 @@
 
 设计要点（都是踩过的坑）：
 
-1. **上传幂等**：SFTP 逐个文件传，远端大小一致就跳过；小于 4MiB 的再比 sha256
-   （两端都算，避免"大小一样、内容不同"漏更新）。大文件只看大小 —— 那 8 个安装包
-   共 ~760MB，每次重跑都下载回来比对是浪费。断了直接重跑就是断点续传。
+1. **上传幂等**：SFTP 逐个文件传。远端大小相同**还要比内容哈希**才跳过
+   （2026-10-12 的事故：新旧两个安装包字节数恰好相同，只比大小就把新包静默跳过了，
+   官网继续发旧包）。8 个安装包共 ~760MB，读一遍哈希是慢一点，但比发错包便宜得多。
+   断了直接重跑就是断点续传。
 2. **`.site_secret` / `.phix_pubkey` 永不上传、永不覆盖**：它们是**每台机器自己生成**的。
    `.site_secret` 由 server.py 首次启动 `_load_or_create_secret()` 生成（0600）；
    `.phix_pubkey` 由 `_get_server_pk()` 从**本机** 8931 的 `/api/v1/ping` 取公钥后固定
@@ -20,8 +21,10 @@
    **不把密码拼进 heredoc**。老写法 `sudo -S bash -c "...<<EOF..."` 的 heredoc
    会被吃掉，表现是"什么都没发生"（见 _recon/remote_test_limits.py 顶部的记录）。
 4. **只碰 phix-site.service**：phix.service 不 restart / 不 stop，不写 drop-in；
-   `~/.config/phix/env`、`db.sqlite3` 一个字节不动；不装任何 Python 包
-   （venv 里已有 cryptography 50.0.1，server.py + core_e2e.py 只用它 + 标准库）。
+   `~/.config/phix/env`、`db.sqlite3` 一个字节不动；不装任何 Python 包。
+   远端 venv 必须**事先**装好依赖：`cryptography`，以及 `/app/` 抓取层的 `requests` /
+   `beautifulsoup4`（可选 `edupage-api`，见 requirements-webapp.txt）—— `server.py`
+   顶层就 import 了 `webapp_managebac`，缺了这些包站点根本起不来。本脚本不替你装。
 5. **绑定地址**：server.py 默认只绑 127.0.0.1（安全默认），本机要局域网直连 +
    Cloudflare 回源，故 ExecStart 显式传 `--host 0.0.0.0`。若上传的 server.py 不支持
    `--host`（老版本），脚本会退化成只传 `--port` 并**明确警告**，绝不静默。

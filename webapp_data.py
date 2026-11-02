@@ -28,7 +28,9 @@ r"""官网服务端平台抓取层：解密后的 `settings.accounts` → 三个
   （`meta.pending == ["edupage"]`、`meta.errors.edupage` = 「正在抓取…请稍后点刷新」、
   `edupage.lessons` 为空），抓取交给**后台线程**；同一用户同一缓存键同时只允许一个
   后台任务。抓完写进 30 分钟缓存，之后点「刷新」（`?force=1`）或前端自动重试即可拿到。
-* **降级**：`bs4` / `edupage-api` 没装时只让对应平台报“缺少依赖”，站点照常起。
+* **降级**：`bs4` / `edupage-api` 没装时只让对应平台报“缺少依赖”。**注意**：本模块
+  确实延迟 import，但 `server.py` 顶部又直接 `import webapp_managebac`（会拉入
+  requests / bs4），所以“站点照常起”目前在启动阶段不成立，见交接文档 §10 的已知债。
 
 返回结构（`fetch_all` 不含外层 `ok`，由 server.py 补）::
 

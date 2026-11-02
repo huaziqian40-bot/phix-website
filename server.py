@@ -34,7 +34,10 @@ WEBSITE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(WEBSITE_DIR))
 
 import core_e2e as e2e  # noqa: E402
-import webapp_data as wd  # noqa: E402  （平台抓取层，纯标准库+可选依赖，绝不抛在 import 期）
+import webapp_data as wd  # noqa: E402  （平台抓取层；bs4/edupage-api 由它自己延迟 import）
+# 注意：下面这行是**顶层** import，会把 requests / bs4 一起拉进启动路径 —— 这与抓取层
+# "缺依赖只降级"的设计相反（见 docs/交接文档.md §10 的已知债）。要改成惰性 import，
+# 同时得补一条"没有这些包也能启动"的测试。
 import webapp_managebac as mb  # noqa: E402  （ManageBac 活动流层）
 
 # ---- 配置 ----

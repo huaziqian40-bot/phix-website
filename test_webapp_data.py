@@ -850,14 +850,16 @@ def fake_edupage_raising(exc: BaseException, *, name: str = "FakeLibError"):
 # （顶层带 date/starttime/subjectid/groupnames/teacherids/classroomids/type），
 # 名字由本地 dbi 解析。71 条里混了表头空行 / 停课 / 事件 / 非本周条目。
 
-FAKE_WEEK_MONDAY = "2026-09-14"
+#: 夹具**不再写死某一周**：后台抓取路径（T14）按「今天所在的周」过滤，
+#: 写死日期会在那一周过去之后让 60 条全部落到“非本周”，T14.7 就假红
+#: （2026-11-02 实测踩到，当时夹具钉在 2026-09-14）。需要固定日期的地方显式传 `monday=`。
 FAKE_WEEK_GROUPS = ("A", "B", "C", "A")          # 有重复 → 验证 selected 去重保序
 FAKE_WEEK_VALID = 60                             # 期望留下的条数
 
 
 def fake_week_items(monday: dt.date | None = None) -> list:
     """构造 71 条课卡：2 表头空行 + 60 本周有效 + 3 停课 + 2 事件 + 4 非本周。"""
-    mon = monday or dt.date.fromisoformat(FAKE_WEEK_MONDAY)
+    mon = monday or wd.week_bounds(dt.date.today())[0]
     items: list = [
         {"type": "period", "uniperiod": "0", "header": [], "classids": [], "groupnames": []},
         {"type": "period", "uniperiod": "6", "header": [], "classids": [], "groupnames": []},

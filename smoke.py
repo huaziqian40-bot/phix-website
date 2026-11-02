@@ -2,7 +2,8 @@
 
     D:\\phix\\server\\.venv\\Scripts\\python.exe -X utf8 D:\\phix\\website\\smoke.py [端口，默认 8940]
 
-只读 + 用一个**临时账号**走一遍 注册→登录→cookie→/me/→读写 profile→登出，跑完自删账号。
+只读 + 用一个**临时账号**走一遍 注册→登录→cookie→/me/→读写 profile→登出。
+**不删账号**（清理由维护者按需跑 D:\\phix\\server\\devtools\\clean_dev_db.py）。
 不打印任何口令/令牌（只打印 8 位指纹）。
 """
 import base64

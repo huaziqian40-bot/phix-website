@@ -1,9 +1,13 @@
 # phix 官网「服务端平台抓取层」新增依赖
 #
-# 站点本体（server.py / core_e2e.py）仍然只用标准库 + cryptography：
-# 下面这些是 /app/data/（服务端代抓 edupage / managebac / 邮箱）用的，
-# **全部在函数内部延迟 import** —— 装不上时对应平台降级为
-# “服务端缺少依赖，暂时无法抓取”，站点照常启动。
+# 站点本体（静态托管 / 账号 / /proxy/*）仍然只用标准库 + cryptography：
+# 下面这些是 /app/ 抓取层（服务端代抓 edupage / managebac / 邮箱）用的。
+#
+# ⚠ 目前 server.py 顶层 import 了 webapp_managebac，而它顶层 import requests 与
+#   webapp_mb_parse（→ beautifulsoup4），所以 requests 与 beautifulsoup4 是
+#   **站点启动的硬依赖**，缺了站点起不来；抓取层原先"延迟 import、缺依赖只降级"
+#   的设计被这一行破坏了（见 docs/交接文档.md §10 的已知债）。
+#   edupage-api 仍是延迟 import，缺它只降级 EduPage。
 #
 # 本机站点 venv：D:\phix\server\.venv
 # 生产站点 venv：/home/phix/phix-server/.venv
