@@ -33,23 +33,24 @@ PACKAGES = {
     "xinlv-windows.zip":         ("v1.1.10", "78,484,034", ["Windows 10", "x64"]),
     "xinlv-macos.dmg":           ("v1.1.10", "121,347,178", ["macOS 10.11", "x86_64"]),
     "xinlv-android.apk":         ("v1.2.35", "5,607,932", ["Android 8.0", "原生库"]),
-    "phl-windows-setup.exe":     ("v1.0.15", "172,240,271", ["Windows 10/11", "x64"]),
-    "phl-macos.dmg":             ("v1.0.15", "213,344,113", ["macOS 13.0", "x86_64"]),
+    "phl-windows-setup.exe":     ("v2.0.0", "171,975,325", ["Windows 10/11", "x64"]),
+    # PHL macOS 2.0 起是 Universal 包（Intel + Apple Silicon），架构关键词随之改
+    "phl-macos.dmg":             ("v2.0.0", "297,103,861", ["macOS 13.0", "Universal"]),
     # PLL Windows 自 2026-09-21 起改用 WiX 构建的 MSI（只出安装版，不再提供便携版 exe）
     "phllite-windows-setup.msi": ("v1.2.7", "54,833,152", ["Windows", "x64"]),
     "phllite-macos.dmg":         ("v1.2.7", "38,037,193", ["macOS 11.0", "x86_64"]),
 }
-BUILD_DATE = "2026-10-17"
+BUILD_DATE = "2026-11-02"
 #: 2026-09-21 重出过的包 → 它们卡片上的日期比 BUILD_DATE 新
 NEWER_DATE = {
-              "phl-macos.dmg": "2026-10-17",
-              "phl-windows-setup.exe": "2026-10-17",
-              "phllite-macos.dmg": "2026-10-17",
-              "phllite-windows-setup.msi": "2026-10-17",
-              "xinlv-android.apk": "2026-10-17",
-              "xinlv-macos.dmg": "2026-10-17",
-              "xinlv-windows-setup.exe": "2026-10-17",
-              "xinlv-windows.zip": "2026-10-17"}
+              "phl-macos.dmg": "2026-11-02",
+              "phl-windows-setup.exe": "2026-11-02",
+              "phllite-macos.dmg": "2026-11-02",
+              "phllite-windows-setup.msi": "2026-11-02",
+              "xinlv-android.apk": "2026-11-02",
+              "xinlv-macos.dmg": "2026-11-02",
+              "xinlv-windows-setup.exe": "2026-11-02",
+              "xinlv-windows.zip": "2026-11-02"}
 
 # 文档里「是对的、不要动」的配额与限流数字
 QUOTA_NUMBERS = ["8 MiB", "2000", "200 MiB", "50 个对象", "10 次", "8 次", "60 次", "120 次",
