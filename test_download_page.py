@@ -25,11 +25,11 @@ DL_DIR = os.path.join(HERE, "media", "downloads")
 PASSED, FAILED = [], []
 
 # 8 个真实安装包（文件名与结构要求一一对应）
-# PLL Windows 自 2026-09-21 起改用 WiX 构建的 MSI（只出安装版，不再提供便携版 exe）
+# PLL Windows 自 1.2.8 起改用与 PH Launcher 同款的标准 NSIS 安装包（不再发 MSI）
 EXPECTED_FILES = [
     "xinlv-windows-setup.exe", "xinlv-windows.zip", "xinlv-macos.dmg", "xinlv-android.apk",
     "phl-windows-setup.exe", "phl-macos.dmg",
-    "phllite-windows-setup.msi", "phllite-macos.dmg",
+    "phllite-windows-setup.exe", "phllite-macos.dmg",
 ]
 
 
