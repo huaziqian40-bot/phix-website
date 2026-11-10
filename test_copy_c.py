@@ -38,14 +38,14 @@ PACKAGES = {
     "phl-macos.dmg":             ("v2.0.13", "243,450,969", ["macOS 13.0", "Universal"]),
     # PLL Windows 1.2.8 起改用与 PH Launcher 同款的标准 NSIS 安装包（不再发 MSI）
     "phllite-windows-setup.exe": ("v1.2.8", "54,798,057", ["Windows", "x64"]),
-    "phllite-macos.dmg":         ("v1.2.7", "38,037,193", ["macOS 11.0", "x86_64"]),
+    "phllite-macos.dmg":         ("v1.2.8", "38,022,318", ["macOS 11.0", "x86_64"]),
 }
 BUILD_DATE = "2026-11-02"
 #: 2026-09-21 重出过的包 → 它们卡片上的日期比 BUILD_DATE 新
 NEWER_DATE = {
               "phl-macos.dmg": "2026-11-09",
               "phl-windows-setup.exe": "2026-11-09",
-              "phllite-macos.dmg": "2026-11-02",
+              "phllite-macos.dmg": "2026-11-10",
               "phllite-windows-setup.exe": "2026-11-10",
               "xinlv-android.apk": "2026-11-02",
               "xinlv-macos.dmg": "2026-11-02",
