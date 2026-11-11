@@ -33,9 +33,9 @@ PACKAGES = {
     "xinlv-windows.zip":         ("v1.1.10", "78,484,034", ["Windows 10", "x64"]),
     "xinlv-macos.dmg":           ("v1.1.10", "121,347,178", ["macOS 10.11", "x86_64"]),
     "xinlv-android.apk":         ("v1.2.35", "5,607,932", ["Android 8.0", "原生库"]),
-    "phl-windows-setup.exe":     ("v2.0.13", "131,013,372", ["Windows 10/11", "x64"]),
+    "phl-windows-setup.exe":     ("v2.0.14", "131,019,929", ["Windows 10/11", "x64"]),
     # PHL macOS 2.0 起是 Universal 包（Intel + Apple Silicon），架构关键词随之改
-    "phl-macos.dmg":             ("v2.0.13", "243,450,969", ["macOS 13.0", "Universal"]),
+    "phl-macos.dmg":             ("v2.0.14", "243,413,935", ["macOS 13.0", "Universal"]),
     # PLL Windows 1.2.8 起改用与 PH Launcher 同款的标准 NSIS 安装包（不再发 MSI）
     "phllite-windows-setup.exe": ("v1.2.8", "54,798,057", ["Windows", "x64"]),
     "phllite-macos.dmg":         ("v1.2.8", "38,022,318", ["macOS 11.0", "x86_64"]),
@@ -43,8 +43,8 @@ PACKAGES = {
 BUILD_DATE = "2026-11-02"
 #: 2026-09-21 重出过的包 → 它们卡片上的日期比 BUILD_DATE 新
 NEWER_DATE = {
-              "phl-macos.dmg": "2026-11-09",
-              "phl-windows-setup.exe": "2026-11-09",
+              "phl-macos.dmg": "2026-11-11",
+              "phl-windows-setup.exe": "2026-11-11",
               "phllite-macos.dmg": "2026-11-10",
               "phllite-windows-setup.exe": "2026-11-10",
               "xinlv-android.apk": "2026-11-02",
@@ -113,12 +113,17 @@ def main():
     print("\n[2] 每个安装包的完整信息（版本 / 日期 / 大小 / 平台与架构）")
     missing_ver = [f for f, (v, _, _) in PACKAGES.items() if v not in dl]
     check("7. 8 个安装包的版本号都在页面上", not missing_ver, f"缺失:{missing_ver}")
-    # 2026-11-09：PHL 单独发了新版本，其余 6 张卡片仍是 2026-11-02。
-    # 原断言要求 8 张卡片日期完全相同，单产品发版就会误报；改成按产品核对。
-    EXPECTED_DATES = {n: ("2026-11-09" if n.startswith("phl-") else BUILD_DATE) for n in PACKAGES}
-    bad_dates = [(n, d) for n, d in EXPECTED_DATES.items()
-                 if f"<dt>更新日期</dt><dd>{d}</dd>" not in dl]
-    check("8. 每张卡片都有更新日期（PHL=2026-11-09，其余=%s）" % BUILD_DATE,
+    # 单产品发版时其他卡片日期不能跟着变化；每个安装包按 NEWER_DATE/基线独立核对。
+    EXPECTED_DATES = {n: NEWER_DATE.get(n, BUILD_DATE) for n in PACKAGES}
+    bad_dates = []
+    for name, expected_date in EXPECTED_DATES.items():
+        card = re.search(
+            rf'<article class="dl-card">(?:(?!</article>).)*?<code>{re.escape(name)}</code>(?:(?!</article>).)*?</article>',
+            dl, re.S,
+        )
+        if not card or f"<dt>更新日期</dt><dd>{expected_date}</dd>" not in card.group(0):
+            bad_dates.append((name, expected_date))
+    check("8. 每张卡片都有与该产物一致的更新日期",
           not bad_dates, f"缺失:{bad_dates}")
     missing_sz = [f for f, (_, sz, _) in PACKAGES.items() if sz not in dl]
     check("9. 8 个安装包的精确字节数都在页面上", not missing_sz, f"缺失:{missing_sz}")
